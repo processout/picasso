@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="../css/sero.css">
+    <title>d3</title>
+</head>
+<body>
+<style>
+.chart * {
+    font-family: "Sero Pro";
+}
+
+.tooltip {
+    line-height: 1.5em;
+    padding: 0.7em;
+    background: white;
+    border-radius: 3px;
+    font-size: 14px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1), 0 5px 8px 0 rgba(0, 0, 0, 0.1);
+    font-family: "Sero Pro";
+    transition: top 0.1s, left 0.1s, opacity 0.1s;
+}
+.tooltip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    line-height: 1;
+    width: 100%;
+    color: white;
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+    z-index: 10;
+}
+.tooltip.n:after {
+    margin: -4px 0 0 0;
+    top: 100%;
+    left: 0;
+}
+
+.chart .country {
+    fill: rgba(0, 0, 0, 0.7);
+    stroke: rgba(255, 255, 255, 0.7);
+    stroke-width: 0.5;
+}
+.chart .country:hover {
+    fill: rgba(0, 0, 0, 1);
+    stroke-width: 1;
+}
+
+.chart .line {
+    fill: none;
+    stroke: #3498db;
+    stroke-width: 2px;
+}
+
+.chart .point-circle-outside {
+    fill: white;
+}
+.chart .point-circle-inside {
+    fill: #9b59b6;
+}
+
+.chart .x-axis path, .chart .y-axis path,
+.chart .x-axis .tick line, .chart .y-axis .tick line {
+    opacity: 0;
+}
+
+.chart .x-axis text, .chart .y-axis text {
+    fill: #bdc3c7;
+}
+
+.chart .chart-background {
+    fill: rgba(81, 99, 149, 0.05);
+}
+
+.chart.no-background .chart-background {
+    display: none;
+}
+
+</style>
+<body>
+
+<div style="height: 3em;"></div>
+<svg class="chart line-chart" id="bar-line-chart" width="600" height="300"></svg>
+<svg class="chart line-chart no-background" id="line-gradient-chart" width="600" height="300"></svg>
+<svg class="chart map-chart" id="map-chart" width="600" height="300"></svg>
+
+<!-- load the d3.js library -->
+<script src="scripts/d3.min.js"></script>
+<script src="scripts/d3-tip.min.js"></script>
+<script src="scripts/picasso.js"></script>
+<script>
+// Helpers
+function chooseColor(d) {
+    if (d.value > 5) return "green";
+    return "red";
+}
+
+// Map chart
+var map = new Picasso.MapChart("#map-chart", {
+    tip: function(d) { if (!d) return false; return "Hello "+d.name; }
+});
+map.addCountry({
+    name: "FRA",
+    value: 10,
+    color: chooseColor
+});
+map.addCountry({
+    name: "USA",
+    value: 2,
+    color: chooseColor
+});
+map.draw();
+
+// Gradient chart (simple line chart with bare design & gradient)
+var gradient = new Picasso.BarLineChart("#line-gradient-chart", {
+    yAxisFormatter: function(d) {
+        return "$"+d;
+    },
+    yLegendLeft: false,
+    yLegendRight: false,
+    xLegendBottom: false,
+    marginTop: 5, marginBottom: 5,
+    marginLeft: 5, marginRight: 5,
+    xAxisMargin: 0, yAxisMargin: 0
+});
+gradient.addLine({
+    dotOutsideSize: 0,
+    dotInsideSize: 0,
+    data: [{
+        key: "1-May-12",
+        value: 0.5,
+    }, {
+        key: "2-May-12",
+        value: 20,
+    }, {
+        key: "3-May-12",
+        value: 10,
+    }],
+    colors: [{
+        value: 0,
+        color: "red"
+    },{
+        value: 70,
+        color: "yellow"
+    },{
+        value: 100,
+        color: "green"
+    }]
+});
+gradient.draw();
+
+// Graph with line & bar chart. Custom color on bar chart as well for one
+// special column
+var graph = new Picasso.BarLineChart("#bar-line-chart", {
+    yAxisFormatter: function(d) {
+        return "$"+d;
+    }
+});
+graph.addLine({
+    data: [{
+        key: "A",
+        value: 0.5
+    }, {
+        key: "B",
+        value: 20,
+    }, {
+        key: "C",
+        value: 10
+    }],
+    tip: function(d) { return d.key; }
+});
+graph.setBar({
+    data: [{
+        "key": "A",
+        "First": 0.5,
+        "Second": 0.4,
+    }, {
+        "key": "B",
+        color: "red",
+        "First": 12,
+        "Second": 5
+    }, {
+        "key": "C",
+        "First": 5,
+        "Second": 6
+    }, {
+        "key": "D",
+        "First": 5,
+        "Second": 6
+    }],
+    colors: ["#98abc5", "#8a89a6"],
+    tip: function(d) { return d.total + " for " + d.key; }
+});
+graph.draw();
+</script>
+</body>
+</html>

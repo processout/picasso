@@ -1,0 +1,8 @@
+{
+    "compileOnSave": false,
+    "buildOnSave": false,
+    "compilerOptions": {
+        "removeComments": true,
+        "outFile": "scripts/picasso.js"
+    }
+}
