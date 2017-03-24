@@ -35,7 +35,7 @@ var Picasso;
             opt.xAxisTicks = (opt.xAxisTicks != null) ? opt.xAxisTicks : 5;
             opt.yAxisTicks = (opt.yAxisTicks != null) ? opt.yAxisTicks : 5;
             opt.yAxisFormatter = opt.yAxisFormatter || function (d) { return d; };
-            opt.timeFormat = (opt.timeFormat || opt.timeFormat === null) ? opt.timeFormat : "%d-%b-%y";
+            opt.timescaled = (opt.timescaled != null) ? opt.timescaled : true;
             this.init(el, opt);
             opt.tip = this.initTooltip(opt.tip);
         }
@@ -153,7 +153,7 @@ var Picasso;
                 }
                 d.total = t;
             }
-            this.options.timeFormat = null;
+            this.options.timescaled = false;
             this.bar = bar;
         };
         BarLineChart.prototype.draw = function () {
@@ -165,7 +165,7 @@ var Picasso;
                 .attr("width", this.width + this.options.marginLeft + this.options.marginRight)
                 .attr("transform", this.translate(-this.options.marginLeft, -this.options.xAxisMargin));
             var x;
-            if (this.options.timeFormat)
+            if (this.options.timescaled)
                 x = d3.scaleTime().range([0, this.width]);
             else
                 x = d3.scaleBand().range([0, this.width]).padding(0.1);
@@ -177,15 +177,10 @@ var Picasso;
                 .x(function (d) { return x(d.key); })
                 .y(function (d) { return y(d.value); })
                 .curve(d3.curveCardinal);
-            var parseTime;
-            if (this.options.timeFormat)
-                parseTime = d3.timeParse(this.options.timeFormat);
             var minValue = +Infinity;
             var maxValue = -Infinity;
             this.lines.forEach(function (l) {
                 l.data.forEach(function (d) {
-                    if (parseTime)
-                        d.key = parseTime(d.key);
                     d.value = +d.value;
                     minValue = this.min(minValue, d.value);
                     maxValue = this.max(maxValue, d.value);
@@ -201,7 +196,7 @@ var Picasso;
                 z.domain(this.bar.columns);
             }
             else {
-                if (this.options.timeFormat)
+                if (this.options.timescaled)
                     x.domain(d3.extent(this.lines[0].data, function (d) { return d.key; }));
                 else
                     x.domain(this.lines[0].data.map(function (d) { return d.key; }));
@@ -234,7 +229,7 @@ var Picasso;
                 }.bind(this));
             }
             var offset = 0;
-            if (!this.options.timeFormat)
+            if (!this.options.timescaled)
                 offset = x.bandwidth() / 2;
             this.lines.forEach(function (l) {
                 var drawnLine = this.svg.append("g")

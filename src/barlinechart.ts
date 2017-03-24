@@ -95,7 +95,7 @@ namespace Picasso {
                 d.total = t;
             }
 
-            this.options.timeFormat = null;
+            this.options.timescaled = false;
             this.bar = bar;
         }
     
@@ -116,7 +116,7 @@ namespace Picasso {
 
             // Define our axis
             var x;
-            if (this.options.timeFormat)
+            if (this.options.timescaled)
                 x = d3.scaleTime().range([0, this.width]);
             else
                 x = d3.scaleBand().range([0, this.width]).padding(0.1)
@@ -131,18 +131,11 @@ namespace Picasso {
                 .y(function(d) { return y(d.value); })
                 .curve(d3.curveCardinal);
 
-            // Define our time parser
-            var parseTime;
-            if (this.options.timeFormat)
-                parseTime = d3.timeParse(this.options.timeFormat);
-
             // Clean up our data sets
             var minValue = +Infinity;
             var maxValue = -Infinity;
             this.lines.forEach(function(l: Line) {
                 l.data.forEach(function(d: LineData) {
-                    if (parseTime)
-                        d.key = parseTime(d.key);
                     d.value = +d.value;
 
                     minValue = this.min(minValue, d.value);
@@ -163,7 +156,7 @@ namespace Picasso {
                 )]).nice();
                 z.domain(this.bar.columns);
             } else {
-                if (this.options.timeFormat)
+                if (this.options.timescaled)
                     x.domain(d3.extent(this.lines[0].data, function(d: LineData) { return d.key; }));
                 else
                     x.domain(this.lines[0].data.map(function(d) { return d.key; }));
@@ -201,7 +194,7 @@ namespace Picasso {
 
             // Compute a possible offset for our lines
             var offset = 0;
-            if (!this.options.timeFormat)
+            if (!this.options.timescaled)
                 offset =  x.bandwidth() / 2;
 
             // Loop over our lines
