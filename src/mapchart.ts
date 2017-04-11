@@ -49,6 +49,14 @@ namespace Picasso {
         }
 
         /**
+         * cleanupTip removes any tip of the chart
+         * @return {void}
+         */
+        public cleanupTip(): void {
+            super.cleanupTip();
+        }
+
+        /**
          * Add a country info to the map
          * @param country Country
          * @return {void}
@@ -90,18 +98,6 @@ namespace Picasso {
                 .attr("class", function(d) { return this.class("country") + " " + this.class(d.id); }.bind(this))
                 .attr("d", path)
                 .style("fill", function(d) {
-                    var country = this.findCountry(d.id);
-                    if (!country) return;
-
-                    if (country.color && this.isFunction(country.color)) {
-                        return country.color(country);
-                    }
-                    if (country.color) {
-                        return country.color;
-                    }
-                    return;
-                }.bind(this))
-                .style('stroke', function(d) {
                     var country = this.findCountry(d.id);
                     if (!country) return;
 

@@ -53,6 +53,30 @@ namespace Picasso {
         }
 
         /**
+         * Cleanup removes any tip of the chart
+         * @return {void}
+         */
+        public cleanupTip(): void {
+            super.cleanupTip();
+            if (this.bar && this.bar.tip) {
+                this.bar.tip.destroy();
+            }
+            for (var i in this.lines) {
+                if (this.lines[i].tip)
+                    this.lines[i].tip.destroy();
+            }
+        }
+
+        /**
+         * resetLines removes all the chart lines and its associated tips
+         * @return {void}
+         */
+        public resetLines(): void {
+            this.cleanupTip();
+            this.lines = [];
+        }
+
+        /**
          * addLine adds a line to the BarLineChart
          * @param line {Line}
          * @return {void}
@@ -85,6 +109,8 @@ namespace Picasso {
             bar.columns.splice(bar.columns.indexOf("key"), 1);
             if (bar.columns.indexOf("color") != -1) 
                 bar.columns.splice(bar.columns.indexOf("color"), 1);
+            if (bar.columns.indexOf("total") != -1)
+                bar.columns.splice(bar.columns.indexOf("total"), 1);
 
             for (var i in bar.data) {
                 let d = bar.data[i];
@@ -129,7 +155,7 @@ namespace Picasso {
             var valueline = d3.line()
                 .x(function(d) { return x(d.key); })
                 .y(function(d) { return y(d.value); })
-                .curve(d3.curveCardinal);
+                .curve(d3.curveCardinal.tension(0.5));
 
             // Clean up our data sets
             var minValue = +Infinity;
@@ -150,10 +176,11 @@ namespace Picasso {
                 maxValue = this.options.max;
             if (this.bar) {
                 x.domain(this.bar.data.map(function(d) { return d.key; }));
-                y.domain([0, this.max(
+                maxValue = this.max(
                     d3.max(this.bar.data, function(d) { return d.total; }), 
                     maxValue
-                )]).nice();
+                );
+                y.domain([0, maxValue]).nice();
                 z.domain(this.bar.columns);
             } else {
                 if (this.options.timescaled)
@@ -273,8 +300,8 @@ namespace Picasso {
                 .enter().append("rect")
                     .attr("class", "bar-collision")
                     .attr("x", function(d) { return x(d.key); })
-                    .attr("y", function(d) { return y(d.total); })
-                    .attr("height", function(d) { return y(0)-y(d.total); })
+                    .attr("y", function(d) { return y(maxValue); })
+                    .attr("height", function(d) { return y(0)-y(maxValue); })
                     .attr("width", x.bandwidth())
                 .on('mouseover', this.bar.tip.show)
                 .on('mouseout', this.bar.tip.hide);

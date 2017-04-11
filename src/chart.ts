@@ -123,6 +123,7 @@ namespace Picasso {
          * @property {any}
          */
         protected svg: any;
+        protected root: any;
 
         /**
          * Constructor
@@ -157,6 +158,27 @@ namespace Picasso {
         }
 
         /**
+         * cleanupTip removes any tip of the chart
+         * @return {void}
+         */
+        public cleanupTip(): void {
+            if (this.options.tip)
+                this.options.tip.destroy();
+        }
+
+        /**
+         * resetSVG resets the svg by removing everything inside
+         * @return {void}
+         */
+        public resetSVG(): void {
+            // Cleanup svg
+            this.root.selectAll("*").remove();
+            // Set padding
+            this.svg = this.root.append("g").attr("transform", 
+                this.translate(this.options.marginLeft, this.options.marginTop));
+        }
+
+        /**
          * Initializes the SVG
          * @param el {string}
          * @param opt {Options}
@@ -164,10 +186,12 @@ namespace Picasso {
          */
         protected init(el: string, opt: Options): void {
             // Setup SVG
-            this.svg = d3.select(el);
-            this.width = +this.svg.attr("width") - opt.marginLeft - opt.marginRight;
-            this.height = +this.svg.attr("height") - opt.marginTop - opt.marginBottom;
-            this.svg = this.svg.append("g").attr("transform", 
+            this.root = d3.select(el);
+            // Compute size
+            this.width = +this.root.node().getBoundingClientRect().width - opt.marginLeft - opt.marginRight;
+            this.height = +this.root.node().getBoundingClientRect().height - opt.marginTop - opt.marginBottom;
+            // Set padding
+            this.svg = this.root.append("g").attr("transform", 
                 this.translate(opt.marginLeft, opt.marginTop));
         }
 
@@ -181,7 +205,7 @@ namespace Picasso {
 
             // Setup tooltip
             var tip = d3.tip()
-                .attr("class", this.class("tooltip"))
+                .attr("class", this.class("chart-tooltip"))
                 .offset([-5, 0])
                 .html(formatter);
             this.svg.call(tip);

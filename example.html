@@ -11,7 +11,7 @@
     font-family: "Sero Pro";
 }
 
-.tooltip {
+.chart-tooltip {
     line-height: 1.5em;
     padding: 0.7em;
     background: white;
@@ -21,7 +21,7 @@
     font-family: "Sero Pro";
     transition: top 0.1s, left 0.1s, opacity 0.1s;
 }
-.tooltip:after {
+.chart-tooltip:after {
     box-sizing: border-box;
     display: inline;
     font-size: 10px;
@@ -33,7 +33,7 @@
     text-align: center;
     z-index: 10;
 }
-.tooltip.n:after {
+.chart-tooltip.n:after {
     margin: -4px 0 0 0;
     top: 100%;
     left: 0;
@@ -116,9 +116,6 @@ map.draw();
 
 // Gradient chart (simple line chart with bare design & gradient)
 var gradient = new Picasso.BarLineChart("#line-gradient-chart", {
-    yAxisFormatter: function(d) {
-        return "$"+d;
-    },
     yLegendLeft: false,
     yLegendRight: false,
     xLegendBottom: false,

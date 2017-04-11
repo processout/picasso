@@ -39,17 +39,25 @@ var Picasso;
             this.init(el, opt);
             opt.tip = this.initTooltip(opt.tip);
         }
+        Chart.prototype.cleanupTip = function () {
+            if (this.options.tip)
+                this.options.tip.destroy();
+        };
+        Chart.prototype.resetSVG = function () {
+            this.root.selectAll("*").remove();
+            this.svg = this.root.append("g").attr("transform", this.translate(this.options.marginLeft, this.options.marginTop));
+        };
         Chart.prototype.init = function (el, opt) {
-            this.svg = d3.select(el);
-            this.width = +this.svg.attr("width") - opt.marginLeft - opt.marginRight;
-            this.height = +this.svg.attr("height") - opt.marginTop - opt.marginBottom;
-            this.svg = this.svg.append("g").attr("transform", this.translate(opt.marginLeft, opt.marginTop));
+            this.root = d3.select(el);
+            this.width = +this.root.node().getBoundingClientRect().width - opt.marginLeft - opt.marginRight;
+            this.height = +this.root.node().getBoundingClientRect().height - opt.marginTop - opt.marginBottom;
+            this.svg = this.root.append("g").attr("transform", this.translate(opt.marginLeft, opt.marginTop));
         };
         Chart.prototype.initTooltip = function (formatter) {
             if (!formatter)
                 return null;
             var tip = d3.tip()
-                .attr("class", this["class"]("tooltip"))
+                .attr("class", this["class"]("chart-tooltip"))
                 .offset([-5, 0])
                 .html(formatter);
             this.svg.call(tip);
@@ -124,6 +132,20 @@ var Picasso;
             _this.bar = null;
             return _this;
         }
+        BarLineChart.prototype.cleanupTip = function () {
+            _super.prototype.cleanupTip.call(this);
+            if (this.bar && this.bar.tip) {
+                this.bar.tip.destroy();
+            }
+            for (var i in this.lines) {
+                if (this.lines[i].tip)
+                    this.lines[i].tip.destroy();
+            }
+        };
+        BarLineChart.prototype.resetLines = function () {
+            this.cleanupTip();
+            this.lines = [];
+        };
         BarLineChart.prototype.addLine = function (line) {
             line.name = line.name || "";
             line.colors = line.colors || null;
@@ -144,6 +166,8 @@ var Picasso;
             bar.columns.splice(bar.columns.indexOf("key"), 1);
             if (bar.columns.indexOf("color") != -1)
                 bar.columns.splice(bar.columns.indexOf("color"), 1);
+            if (bar.columns.indexOf("total") != -1)
+                bar.columns.splice(bar.columns.indexOf("total"), 1);
             for (var i in bar.data) {
                 var d = bar.data[i];
                 var t = 0;
@@ -176,7 +200,7 @@ var Picasso;
             var valueline = d3.line()
                 .x(function (d) { return x(d.key); })
                 .y(function (d) { return y(d.value); })
-                .curve(d3.curveCardinal);
+                .curve(d3.curveCardinal.tension(0.5));
             var minValue = +Infinity;
             var maxValue = -Infinity;
             this.lines.forEach(function (l) {
@@ -192,7 +216,8 @@ var Picasso;
                 maxValue = this.options.max;
             if (this.bar) {
                 x.domain(this.bar.data.map(function (d) { return d.key; }));
-                y.domain([0, this.max(d3.max(this.bar.data, function (d) { return d.total; }), maxValue)]).nice();
+                maxValue = this.max(d3.max(this.bar.data, function (d) { return d.total; }), maxValue);
+                y.domain([0, maxValue]).nice();
                 z.domain(this.bar.columns);
             }
             else {
@@ -294,8 +319,8 @@ var Picasso;
                     .enter().append("rect")
                     .attr("class", "bar-collision")
                     .attr("x", function (d) { return x(d.key); })
-                    .attr("y", function (d) { return y(d.total); })
-                    .attr("height", function (d) { return y(0) - y(d.total); })
+                    .attr("y", function (d) { return y(maxValue); })
+                    .attr("height", function (d) { return y(0) - y(maxValue); })
                     .attr("width", x.bandwidth())
                     .on('mouseover', this.bar.tip.show)
                     .on('mouseout', this.bar.tip.hide);
@@ -335,6 +360,9 @@ var Picasso;
             _this.countries = [];
             return _this;
         }
+        MapChart.prototype.cleanupTip = function () {
+            _super.prototype.cleanupTip.call(this);
+        };
         MapChart.prototype.addCountry = function (country) {
             country.name = country.name || "";
             country.color = country.color || null;
@@ -359,18 +387,6 @@ var Picasso;
                 .attr("class", function (d) { return this["class"]("country") + " " + this["class"](d.id); }.bind(this))
                 .attr("d", path)
                 .style("fill", function (d) {
-                var country = this.findCountry(d.id);
-                if (!country)
-                    return;
-                if (country.color && this.isFunction(country.color)) {
-                    return country.color(country);
-                }
-                if (country.color) {
-                    return country.color;
-                }
-                return;
-            }.bind(this))
-                .style('stroke', function (d) {
                 var country = this.findCountry(d.id);
                 if (!country)
                     return;
