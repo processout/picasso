@@ -181,11 +181,12 @@ var Picasso;
             this.bar = bar;
         };
         BarLineChart.prototype.clear = function () {
-            this.lines.forEach(function (l) {
-                if (l.tip)
-                    l.tip.hide();
-            });
-            if (this.bar.tip)
+            if (this.lines)
+                this.lines.forEach(function (l) {
+                    if (l.tip)
+                        l.tip.hide();
+                });
+            if (this.bar && this.bar.tip)
                 this.bar.tip.hide();
         };
         BarLineChart.prototype.draw = function () {

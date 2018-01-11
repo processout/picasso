@@ -132,10 +132,11 @@ namespace Picasso {
          * @return {void}
          */
         public clear(): void {
-            this.lines.forEach(function(l: Line) {
-                if (l.tip) l.tip.hide();
-            });
-            if (this.bar.tip) this.bar.tip.hide();
+            if (this.lines)
+                this.lines.forEach(function(l: Line) {
+                    if (l.tip) l.tip.hide();
+                });
+            if (this.bar && this.bar.tip) this.bar.tip.hide();
         }
     
         /**
