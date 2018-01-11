@@ -280,7 +280,7 @@ namespace Picasso {
             this.lines.forEach(function(l: Line) {
                 if (l.tip || l.onclick) {
                     var cl = this.class("point-circle-collision");
-                    if (this.bar.onclick)
+                    if (l.onclick)
                         cl += " " + this.class("point-circle-collision-onclick"); 
 
                     this.svg.selectAll(this.dotClass("point-circle-collision"))
