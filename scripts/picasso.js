@@ -180,6 +180,14 @@ var Picasso;
             this.options.timescaled = false;
             this.bar = bar;
         };
+        BarLineChart.prototype.clear = function () {
+            this.lines.forEach(function (l) {
+                if (l.tip)
+                    l.tip.hide();
+            });
+            if (this.bar.tip)
+                this.bar.tip.hide();
+        };
         BarLineChart.prototype.draw = function () {
             if (this.lines.length <= 0 && !this.bar)
                 return;

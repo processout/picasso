@@ -126,6 +126,17 @@ namespace Picasso {
             this.options.timescaled = false;
             this.bar = bar;
         }
+
+        /**
+         * Clear clears the chart tooltips
+         * @return {void}
+         */
+        public clear(): void {
+            this.lines.forEach(function(l: Line) {
+                if (l.tip) l.tip.hide();
+            });
+            if (this.bar.tip) this.bar.tip.hide();
+        }
     
         /**
          * Draw draws the chart
