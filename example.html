@@ -189,7 +189,8 @@ graph.setBar({
         "Second": 6
     }],
     colors: ["#98abc5", "#8a89a6"],
-    tip: function(d) { return d.total + " for " + d.key; }
+    tip: function(d) { return d.total + " for " + d.key; },
+    onclick: function(d) { console.log(d); }
 });
 graph.draw();
 </script>

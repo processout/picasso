@@ -298,7 +298,7 @@ var Picasso;
                     .attr("cy", function (d) { return y(d.value); });
             }.bind(this));
             this.lines.forEach(function (l) {
-                if (l.tip) {
+                if (l.tip || l.onclick) {
                     this.svg.selectAll(this.dotClass("point-circle-collision"))
                         .data(l.data)
                         .enter().append("circle")
@@ -307,11 +307,17 @@ var Picasso;
                         .attr("r", 11)
                         .attr("cx", function (d) { return x(d.key) + offset; })
                         .attr("cy", function (d) { return y(d.value); })
-                        .on('mouseover', l.tip.show)
-                        .on('mouseout', l.tip.hide);
+                        .on("mouseover", function (d) { if (l.tip.show)
+                        l.tip.show(d); }.bind(this))
+                        .on("mouseout", function (d) { if (l.tip.hide)
+                        l.tip.hide(d); }.bind(this))
+                        .on("click", function (d) {
+                        if (l.onclick)
+                            l.onclick(d);
+                    }.bind(this));
                 }
             }.bind(this));
-            if (this.bar && this.bar.tip) {
+            if (this.bar && (this.bar.tip || this.bar.onclick)) {
                 this.svg.append("g")
                     .attr("fill", "transparent")
                     .selectAll(".bar-collision")
@@ -322,8 +328,14 @@ var Picasso;
                     .attr("y", function (d) { return y(maxValue); })
                     .attr("height", function (d) { return y(0) - y(maxValue); })
                     .attr("width", x.bandwidth())
-                    .on('mouseover', this.bar.tip.show)
-                    .on('mouseout', this.bar.tip.hide);
+                    .on("mouseover", function (d) { if (this.bar.tip)
+                    this.bar.tip.show(d); }.bind(this))
+                    .on("mouseout", function (d) { if (this.bar.tip)
+                    this.bar.tip.hide(d); }.bind(this))
+                    .on("click", function (d) {
+                    if (this.bar.onclick)
+                        this.bar.onclick(d);
+                }.bind(this));
             }
             if (this.options.xLegendBottom) {
                 this.svg.append("g").attr("class", "x-axis")
