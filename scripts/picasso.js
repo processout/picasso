@@ -299,10 +299,13 @@ var Picasso;
             }.bind(this));
             this.lines.forEach(function (l) {
                 if (l.tip || l.onclick) {
+                    var cl = this["class"]("point-circle-collision");
+                    if (this.bar.onclick)
+                        cl += " " + this["class"]("point-circle-collision-onclick");
                     this.svg.selectAll(this.dotClass("point-circle-collision"))
                         .data(l.data)
                         .enter().append("circle")
-                        .attr("class", this["class"]("point-circle-collision"))
+                        .attr("class", cl)
                         .attr("fill", "transparent")
                         .attr("r", 11)
                         .attr("cx", function (d) { return x(d.key) + offset; })
@@ -318,12 +321,15 @@ var Picasso;
                 }
             }.bind(this));
             if (this.bar && (this.bar.tip || this.bar.onclick)) {
+                var cl = this["class"]("bar-collision");
+                if (this.bar.onclick)
+                    cl += " " + this["class"]("bar-collision-onclick");
                 this.svg.append("g")
                     .attr("fill", "transparent")
-                    .selectAll(".bar-collision")
+                    .selectAll(this.dotClass("bar-collision"))
                     .data(this.bar.data)
                     .enter().append("rect")
-                    .attr("class", "bar-collision")
+                    .attr("class", cl)
                     .attr("x", function (d) { return x(d.key); })
                     .attr("y", function (d) { return y(maxValue); })
                     .attr("height", function (d) { return y(0) - y(maxValue); })
