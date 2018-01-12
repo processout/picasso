@@ -107,12 +107,14 @@ namespace Picasso {
             bar.name = bar.name || "";
             bar.colors = bar.colors || [];
             bar.tip = this.initTooltip(bar.tip);
-            bar.columns = Object.keys(bar.data[0]);
-            bar.columns.splice(bar.columns.indexOf("key"), 1);
-            if (bar.columns.indexOf("color") != -1) 
-                bar.columns.splice(bar.columns.indexOf("color"), 1);
-            if (bar.columns.indexOf("total") != -1)
-                bar.columns.splice(bar.columns.indexOf("total"), 1);
+            bar.columns = [];
+            // Clean up columns
+            for (var k in bar.data[0]) {
+                if (k == "key" || k == "color" || k == "total" || (k != "" && k[0] == '_'))
+                    continue;
+                
+                    bar.columns.push(k);
+            }
 
             for (var i in bar.data) {
                 let d = bar.data[i];
