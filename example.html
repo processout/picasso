@@ -2,13 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
-    <link rel="stylesheet" type="text/css" href="../css/sero.css">
     <title>d3</title>
 </head>
 <body>
 <style>
 .chart * {
-    font-family: "Sero Pro";
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
 }
 
 .chart-tooltip {
@@ -18,7 +17,7 @@
     border-radius: 3px;
     font-size: 14px;
     box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1), 0 5px 8px 0 rgba(0, 0, 0, 0.1);
-    font-family: "Sero Pro";
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
     transition: top 0.1s, left 0.1s, opacity 0.1s;
 }
 .chart-tooltip:after {
@@ -127,13 +126,13 @@ gradient.addLine({
     dotOutsideSize: 0,
     dotInsideSize: 0,
     data: [{
-        key: "1-May-12",
+        key: new Date(2012, 0, 1),
         value: 0.5,
     }, {
-        key: "2-May-12",
+        key: new Date(2012, 0, 2),
         value: 20,
     }, {
-        key: "3-May-12",
+        key: new Date(2012, 0, 3),
         value: 10,
     }],
     colors: [{
@@ -169,11 +168,25 @@ graph.addLine({
     }],
     tip: function(d) { return d.key; }
 });
-graph.setBar({
+graph.addLine({
+    data: [{
+        key: "A",
+        value: 10
+    }, {
+        key: "B",
+        value: 5,
+    }, {
+        key: "C",
+        value: 20
+    }],
+    tip: function(d) { return d.key; }
+});
+graph.addBar({
     data: [{
         "key": "A",
         "First": 0.5,
         "Second": 0.4,
+        "_test": 1,
     }, {
         "key": "B",
         color: "red",
@@ -189,7 +202,26 @@ graph.setBar({
         "Second": 6
     }],
     colors: ["#98abc5", "#8a89a6"],
-    tip: function(d) { return d.total + " for " + d.key; },
+    tip: function(d) { return d.total + " for " + d.key+ " (bar 1)"; },
+    onclick: function(d) { console.log(d); }
+});
+graph.addBar({
+    data: [{
+        "key": "A",
+        "First": 20,
+    }, {
+        "key": "B",
+        color: "blue",
+        "First": 5
+    }, {
+        "key": "C",
+        "First": 3
+    }, {
+        "key": "D",
+        "First": 30
+    }],
+    colors: ["green"],
+    tip: function(d) { return d.total + " for " + d.key + " (bar 2)"; },
     onclick: function(d) { console.log(d); }
 });
 graph.draw();

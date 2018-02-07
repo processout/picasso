@@ -86,11 +86,6 @@ namespace Picasso {
          */
         public yAxisFormatter: (d: any) => string;
         /**
-         * If the scale is a time or not
-         * @property {boolean}
-         */
-        public timescaled?: boolean;
-        /**
          * Tooltip to be shown on the chart elements. Can only be used for
          * MapChart charts
          * @property {any?}
@@ -150,7 +145,6 @@ namespace Picasso {
             opt.xAxisTicks = (opt.xAxisTicks != null) ? opt.xAxisTicks : 5;
             opt.yAxisTicks = (opt.yAxisTicks != null) ? opt.yAxisTicks : 5;
             opt.yAxisFormatter = opt.yAxisFormatter || function(d) { return d; };
-            opt.timescaled = (opt.timescaled != null) ? opt.timescaled : true;
 
             this.init(el, opt);
 

@@ -39,11 +39,12 @@ namespace Picasso {
          * @property {Array<Line>}
          */
         protected lines: Line[] = [];
+
         /**
          * Bar drawn. Can be null if none should be drawn
          * @property {Bar}
          */
-        protected bar: Bar = null;
+        protected bars: Bar[] = [];
 
         /**
          * Constructor
@@ -60,8 +61,9 @@ namespace Picasso {
          */
         public cleanupTip(): void {
             super.cleanupTip();
-            if (this.bar && this.bar.tip) {
-                this.bar.tip.destroy();
+            for (var i in this.bars) {
+                if (this.bars[i].tip)
+                    this.bars[i].tip.destroy();
             }
             for (var i in this.lines) {
                 if (this.lines[i].tip)
@@ -99,9 +101,8 @@ namespace Picasso {
          * @param bar {Bar}
          * @return {void}
          */
-        public setBar(bar: Bar): void {
+        public addBar(bar: Bar): void {
             if (!bar || !bar.data.length) {
-                this.bar = null;
                 return;
             }
             bar.name = bar.name || "";
@@ -125,8 +126,7 @@ namespace Picasso {
                 d.total = t;
             }
 
-            this.options.timescaled = false;
-            this.bar = bar;
+            this.bars.push(bar);
         }
 
         /**
@@ -137,8 +137,11 @@ namespace Picasso {
             if (this.lines)
                 this.lines.forEach(function(l: Line) {
                     if (l.tip) l.tip.hide();
-                });
-            if (this.bar && this.bar.tip) this.bar.tip.hide();
+                }, this);
+            if (this.bars)
+                this.bars.forEach(function(b: Bar) {
+                    if (b.tip) b.tip.hide();
+                }, this);
         }
     
         /**
@@ -146,8 +149,30 @@ namespace Picasso {
          * @return {void}
          */
         public draw(): void {
-            if (this.lines.length <= 0 && !this.bar)
+            if (this.lines.length <= 0 && this.bars.length <= 0)
                 return;
+
+            // Compute if the chart is going to be time scaled or not
+            var timescaled = false;
+            this.lines.forEach(function(l: Line) {
+                l.data.forEach(function(d: LineData) {
+                    if (d.key instanceof Date)
+                        timescaled = true;
+                    
+                    if (timescaled && !(d.key instanceof Date))
+                        throw new Error("The lines provided contained both Date and not dates for its keys. The keys should either all be Dates, or none.");
+                }, this);
+            }, this);
+
+            if (timescaled && this.bars.length > 0)
+                throw new Error("The lines provided all contained Dates for its keys, but bars were also provided. Please don't use Dates as keys on your line charts when using bars as well.");
+
+            this.bars.forEach(function(b: Bar) {
+                b.data.forEach(function(d: BarData) {
+                    if (d.key instanceof Date)
+                        throw new Error("The bar chart contained Dates as keys, which is not supported.");
+                }, this);
+            }, this);
 
             // Add background to chart
             this.svg.append("g").append("rect")
@@ -158,14 +183,11 @@ namespace Picasso {
 
             // Define our axis
             var x;
-            if (this.options.timescaled)
+            if (timescaled)
                 x = d3.scaleTime().range([0, this.width]);
             else
                 x = d3.scaleBand().range([0, this.width]).padding(0.1)
             var y = d3.scaleLinear().range([this.height, 0]);
-            var z;
-            if (this.bar)
-                z = d3.scaleOrdinal().range(this.bar.colors);
 
             // Define our value line and curve
             var valueline = d3.line()
@@ -182,24 +204,27 @@ namespace Picasso {
 
                     minValue = this.min(minValue, d.value);
                     maxValue = this.max(maxValue, d.value);
-                }.bind(this));
-            }.bind(this));
+                }, this);
+            }, this);
 
             // Scale the range of the data
             if (this.options.min != null)
                 minValue = this.options.min;
             if (this.options.max != null)
                 maxValue = this.options.max;
-            if (this.bar) {
-                x.domain(this.bar.data.map(function(d) { return d.key; }));
-                maxValue = this.max(
-                    d3.max(this.bar.data, function(d) { return d.total; }), 
-                    maxValue
-                );
+            if (this.bars.length > 0) {
+                var keys: Array<string> = [];
+                for (var i in this.bars) {
+                    for (var j in this.bars[i].data) {
+                        if (keys.indexOf(this.bars[i].data[j].key) < 0)
+                            keys.push(this.bars[i].data[j].key);
+                        maxValue = this.max(this.bars[i].data[j].total, maxValue);
+                    }
+                }
+                x.domain(keys);
                 y.domain([0, maxValue]).nice();
-                z.domain(this.bar.columns);
             } else {
-                if (this.options.timescaled)
+                if (timescaled)
                     x.domain(d3.extent(this.lines[0].data, function(d: LineData) { return d.key; }));
                 else
                     x.domain(this.lines[0].data.map(function(d) { return d.key; }));
@@ -207,9 +232,15 @@ namespace Picasso {
             }
 
             // Add our bar (if any)
-            if (this.bar) {
+            var xbar;
+            if (this.bars.length > 0)
+                xbar = d3.scaleBand().padding(0.05)
+                    .domain([0, this.bars.length - 1])
+                    .rangeRound([0, x.bandwidth()]);
+            this.bars.forEach(function(b: Bar, id) {
+                var z = d3.scaleOrdinal().range(b.colors).domain(b.columns);
                 this.svg.append("g").selectAll(".bar-group")
-                    .data(d3.stack().keys(this.bar.columns)(this.bar.data))
+                    .data(d3.stack().keys(b.columns)(b.data))
                 .enter().append("g")
                     .attr("class", "bar-group")
                     .attr("fill", function(d) {
@@ -219,10 +250,10 @@ namespace Picasso {
                     .data(function(d) { return d; })
                 .enter().append("rect")
                     .attr("class", "bar")
-                    .attr("x", function(d) { return x(d.data.key); })
+                    .attr("x", function(d) { return x(d.data.key) + xbar(id); })
                     .attr("y", function(d) { return y(d[1]); })
                     .attr("height", function(d) { return y(d[0]) - y(d[1]); })
-                    .attr("width", x.bandwidth())
+                    .attr("width", xbar.bandwidth())
                     .attr("fill", function(d) {
                         if (d.data.color && this.isFunction(d.data.color)) {
                             return d.data.color(d);
@@ -233,11 +264,11 @@ namespace Picasso {
 
                         return;
                     }.bind(this));
-            }
+            }, this);
 
             // Compute a possible offset for our lines
             var offset = 0;
-            if (!this.options.timescaled)
+            if (!timescaled)
                 offset =  x.bandwidth() / 2;
 
             // Loop over our lines
@@ -288,53 +319,57 @@ namespace Picasso {
                     .attr("r", l.dotInsideSize)
                     .attr("cx", function(d: LineData) { return x(d.key) + offset; })
                     .attr("cy", function(d: LineData) { return y(d.value); });
-            }.bind(this));
+            }, this);
 
             // Iterate again to add line tooltips
             this.lines.forEach(function(l: Line) {
-                if (l.tip || l.onclick) {
-                    var cl = this.class("point-circle-collision");
-                    if (l.onclick)
-                        cl += " " + this.class("point-circle-collision-onclick"); 
+                if (!l.tip && !l.onclick)
+                    return;
 
-                    this.svg.selectAll(this.dotClass("point-circle-collision"))
-                        .data(l.data)
-                    .enter().append("circle")
-                        .attr("class", cl)
-                        .attr("fill", "transparent")
-                        .attr("r", 11)
-                        .attr("cx", function(d: LineData) { return x(d.key) + offset; })
-                        .attr("cy", function(d: LineData) { return y(d.value); })
-                    .on("mouseover", function(d) { if (l.tip.show) l.tip.show(d); }.bind(this))
-                    .on("mouseout",  function(d) { if (l.tip.hide) l.tip.hide(d); }.bind(this))
-                    .on("click", function(d) {
-                        if (l.onclick) l.onclick(d);
-                    }.bind(this));
-                }
+                var cl = this.class("point-circle-collision");
+                if (l.onclick)
+                    cl += " " + this.class("point-circle-collision-onclick"); 
+
+                this.svg.selectAll(this.dotClass("point-circle-collision"))
+                    .data(l.data)
+                .enter().append("circle")
+                    .attr("class", cl)
+                    .attr("fill", "transparent")
+                    .attr("r", 11)
+                    .attr("cx", function(d: LineData) { return x(d.key) + offset; })
+                    .attr("cy", function(d: LineData) { return y(d.value); })
+                .on("mouseover", function(d) { if (l.tip.show) l.tip.show(d); }.bind(this))
+                .on("mouseout",  function(d) { if (l.tip.hide) l.tip.hide(d); }.bind(this))
+                .on("click", function(d) {
+                    if (l.onclick) l.onclick(d);
+                }.bind(this));
             }.bind(this));
 
-            // And add the tooltip of the bar as well
-            if (this.bar && (this.bar.tip || this.bar.onclick)) {
+            // And add the tooltip of the bars as well
+            this.bars.forEach(function(b: Bar, id) {
+                if (!b.tip && !b.onclick)
+                    return;
+
                 var cl = this.class("bar-collision");
-                if (this.bar.onclick)
+                if (b.onclick)
                     cl += " " + this.class("bar-collision-onclick"); 
 
                 this.svg.append("g")
                     .attr("fill", "transparent")
                 .selectAll(this.dotClass("bar-collision"))
-                    .data(this.bar.data)
+                    .data(b.data)
                 .enter().append("rect")
                     .attr("class", cl)
-                    .attr("x", function(d) { return x(d.key); })
+                    .attr("x", function(d) { return x(d.key) + xbar(id); })
                     .attr("y", function(d) { return y(maxValue); })
                     .attr("height", function(d) { return y(0)-y(maxValue); })
-                    .attr("width", x.bandwidth())
-                .on("mouseover", function(d) { if (this.bar.tip) this.bar.tip.show(d); }.bind(this))
-                .on("mouseout",  function(d) { if (this.bar.tip) this.bar.tip.hide(d); }.bind(this))
+                    .attr("width", xbar.bandwidth())
+                .on("mouseover", function(d) { if (b.tip) b.tip.show(d); }.bind(this))
+                .on("mouseout",  function(d) { if (b.tip) b.tip.hide(d); }.bind(this))
                 .on("click", function(d) {
-                    if (this.bar.onclick) this.bar.onclick(d);
+                    if (b.onclick) b.onclick(d);
                 }.bind(this));
-            }
+            }, this);
 
             // Add the X Axis
             if (this.options.xLegendBottom) {
