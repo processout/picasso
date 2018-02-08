@@ -375,7 +375,9 @@ namespace Picasso {
             if (this.options.xLegendBottom) {
                 this.svg.append("g").attr("class", "x-axis")
                     .attr("transform", this.translate(0, this.height + this.options.xAxisMargin))
-                    .call(d3.axisBottom(x).ticks(this.options.xAxisTicks));
+                    .call(d3.axisBottom(x).ticks(this.options.xAxisTicks))
+                    .selectAll(".tick text")
+                        .call(this.wrap, x.bandwidth());;
             }
 
             // Add the Y Axis

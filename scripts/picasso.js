@@ -84,6 +84,29 @@ var Picasso;
         Chart.prototype.isFunction = function (obj) {
             return !!(obj && obj.constructor && obj.call && obj.apply);
         };
+        Chart.prototype.wrap = function (text, width) {
+            text.each(function () {
+                var style = "max-width:" + width + "px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+                var text = d3.select(this), words = text.text().split(/\s+/).reverse(), word, line = [], lineNumber = 0, lineHeight = 1.1, y = text.attr("y"), dy = parseFloat(text.attr("dy")), tspan = text.text(null).append("tspan").attr("style", style)
+                    .attr("x", 0).attr("y", y).attr("dy", dy + "em");
+                while (word = words.pop()) {
+                    line.push(word);
+                    tspan.text(line.join(" "));
+                    if (tspan.node().getComputedTextLength() > width) {
+                        if (line.length == 1) {
+                            continue;
+                        }
+                        line.pop();
+                        tspan.text(line.join(" "));
+                        line = [word];
+                        tspan = text.append("tspan").attr("style", style)
+                            .attr("x", 0).attr("y", y)
+                            .attr("dy", ++lineNumber * lineHeight + dy + "em")
+                            .text(word);
+                    }
+                }
+            });
+        };
         return Chart;
     }());
     Picasso.Chart = Chart;
@@ -384,7 +407,10 @@ var Picasso;
             if (this.options.xLegendBottom) {
                 this.svg.append("g").attr("class", "x-axis")
                     .attr("transform", this.translate(0, this.height + this.options.xAxisMargin))
-                    .call(d3.axisBottom(x).ticks(this.options.xAxisTicks));
+                    .call(d3.axisBottom(x).ticks(this.options.xAxisTicks))
+                    .selectAll(".tick text")
+                    .call(this.wrap, x.bandwidth());
+                ;
             }
             if (this.options.yLegendLeft) {
                 this.svg.append("g").attr("class", "y-axis")
