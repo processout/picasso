@@ -86,20 +86,24 @@ var Picasso;
         };
         Chart.prototype.wrap = function (text, width) {
             text.each(function () {
-                var style = "max-width:" + width + "px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
-                var text = d3.select(this), words = text.text().split(/\s+/).reverse(), word, line = [], lineNumber = 0, lineHeight = 1.1, y = text.attr("y"), dy = parseFloat(text.attr("dy")), tspan = text.text(null).append("tspan").attr("style", style)
+                var text = d3.select(this), words = text.text().split(/\s+/).reverse(), word, line = [], lineNumber = 0, lineHeight = 1.1, y = text.attr("y"), dy = parseFloat(text.attr("dy")), tspan = text.text(null).append("tspan")
                     .attr("x", 0).attr("y", y).attr("dy", dy + "em");
                 while (word = words.pop()) {
                     line.push(word);
                     tspan.text(line.join(" "));
                     if (tspan.node().getComputedTextLength() > width) {
                         if (line.length == 1) {
+                            var tmp = word;
+                            while (tspan.node().getComputedTextLength() > width) {
+                                tmp = tmp.substring(0, tmp.length - 1);
+                                tspan.text(tmp + "…");
+                            }
                             continue;
                         }
                         line.pop();
                         tspan.text(line.join(" "));
                         line = [word];
-                        tspan = text.append("tspan").attr("style", style)
+                        tspan = text.append("tspan")
                             .attr("x", 0).attr("y", y)
                             .attr("dy", ++lineNumber * lineHeight + dy + "em")
                             .text(word);
