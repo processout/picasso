@@ -411,10 +411,9 @@ var Picasso;
             if (this.options.xLegendBottom) {
                 this.svg.append("g").attr("class", "x-axis")
                     .attr("transform", this.translate(0, this.height + this.options.xAxisMargin))
-                    .call(d3.axisBottom(x).ticks(this.options.xAxisTicks))
-                    .selectAll(".tick text")
-                    .call(this.wrap, x.bandwidth());
-                ;
+                    .call(d3.axisBottom(x).ticks(this.options.xAxisTicks));
+                if (!timescaled)
+                    this.svg.selectAll(".tick text").call(this.wrap, x.bandwidth());
             }
             if (this.options.yLegendLeft) {
                 this.svg.append("g").attr("class", "y-axis")
