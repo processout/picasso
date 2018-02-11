@@ -287,7 +287,7 @@ var Picasso;
             var xbar;
             if (this.bars.length > 0)
                 xbar = d3.scaleBand().padding(0.05)
-                    .domain([0, this.bars.length - 1])
+                    .domain(this.bars.map(function (d, id) { return id; }))
                     .rangeRound([0, x.bandwidth()]);
             this.bars.forEach(function (b, id) {
                 var z = d3.scaleOrdinal().range(b.colors).domain(b.columns);

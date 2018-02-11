@@ -166,7 +166,7 @@ graph.addLine({
         key: "One more for the C label",
         value: 10
     }],
-    tip: function(d) { return d.key; }
+    tip: function(d) { return d.key + " first line"; }
 });
 graph.addLine({
     data: [{
@@ -179,7 +179,7 @@ graph.addLine({
         key: "One more for the C label",
         value: 20
     }],
-    tip: function(d) { return d.key; }
+    tip: function(d) { return d.key + " second line"; }
 });
 graph.addBar({
     data: [{
@@ -197,7 +197,7 @@ graph.addBar({
         "First": 5,
         "Second": 6
     }, {
-        "key": "Apparently we need a final one",
+        "key": "Apparently we need a final one on a third line maybe?",
         "First": 5,
         "Second": 6
     }],
@@ -217,10 +217,28 @@ graph.addBar({
         "key": "One more for the C label",
         "First": 3
     }, {
-        "key": "Apparently we need a final one",
+        "key": "Apparently we need a final one on a third line maybe?",
         "First": 30
     }],
     colors: ["green"],
+    tip: function(d) { return d.total + " for " + d.key + " (bar 2)"; },
+    onclick: function(d) { console.log(d); }
+});
+graph.addBar({
+    data: [{
+        "key": "asdkjnasdnasdjinasidnasijndiasdnaisjndiasnd",
+        "First": 5,
+    }, {
+        "key": "Another quite long label",
+        color: "blue",
+        "First": 10
+    }, {
+        "key": "One more for the C label",
+        "First": 2
+    }, {
+        "key": "Apparently we need a final one on a third line maybe?",
+        "First": 40
+    }],
     tip: function(d) { return d.total + " for " + d.key + " (bar 2)"; },
     onclick: function(d) { console.log(d); }
 });
