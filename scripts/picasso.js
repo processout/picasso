@@ -345,7 +345,10 @@ var Picasso;
                     .data([l.data])
                     .attr("class", this["class"]("line") + " " + l.name)
                     .attr("d", valueline);
-                if (l.colors) {
+                if (l.color) {
+                    drawnLine.attr("style", "stroke: " + l.color);
+                }
+                else if (l.colors) {
                     for (var i in l.colors) {
                         if (l.colors[i].value) {
                             l.colors[i].offset = Math.floor(l.colors[i].value / maxValue * 100) + "%";

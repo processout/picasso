@@ -9,6 +9,7 @@ namespace Picasso {
      */
     export class Line {
         public name: string;
+        public color: string;
         public colors?: GradientColor[];
         public onclick?: any;
         public data: LineData[];
@@ -305,7 +306,9 @@ namespace Picasso {
                     .attr("class", this.class("line") + " " + l.name)
                     .attr("d", valueline);
                 // Add support for custom/gradient colors on lines
-                if (l.colors) {
+                if (l.color) {
+                    drawnLine.attr("style", `stroke: ${l.color}`);
+                } else if (l.colors) {
                     // Correctly format our colors
                     for (var i in l.colors) {
                         if (l.colors[i].value) {
