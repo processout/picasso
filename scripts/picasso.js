@@ -156,6 +156,8 @@ var Picasso;
             var _this = _super.call(this, el, options) || this;
             _this.lines = [];
             _this.bars = [];
+            if (options.linesTip)
+                _this.linesTip = _this.initTooltip(options.linesTip);
             return _this;
         }
         BarLineChart.prototype.cleanupTip = function () {
@@ -164,10 +166,8 @@ var Picasso;
                 if (this.bars[i].tip)
                     this.bars[i].tip.destroy();
             }
-            for (var i in this.lines) {
-                if (this.lines[i].tip)
-                    this.lines[i].tip.destroy();
-            }
+            if (this.linesTip)
+                this.linesTip.destroy();
         };
         BarLineChart.prototype.resetLines = function () {
             this.cleanupTip();
@@ -176,9 +176,12 @@ var Picasso;
         BarLineChart.prototype.addLine = function (line) {
             line.name = line.name || "";
             line.colors = line.colors || null;
-            line.tip = this.initTooltip(line.tip);
             line.dotOutsideSize = line.dotOutsideSize == null ? 5 : line.dotOutsideSize;
             line.dotInsideSize = line.dotInsideSize == null ? 3 : line.dotInsideSize;
+            for (var _i = 0, _a = line.data; _i < _a.length; _i++) {
+                var point = _a[_i];
+                point.lineName = line.name;
+            }
             this.lines.push(line);
         };
         BarLineChart.prototype.addBar = function (bar) {
@@ -206,16 +209,13 @@ var Picasso;
             this.bars.push(bar);
         };
         BarLineChart.prototype.clear = function () {
-            if (this.lines)
-                this.lines.forEach(function (l) {
-                    if (l.tip)
-                        l.tip.hide();
-                }, this);
             if (this.bars)
                 this.bars.forEach(function (b) {
                     if (b.tip)
                         b.tip.hide();
                 }, this);
+            if (this.linesTip)
+                this.linesTip.hide();
         };
         BarLineChart.prototype.draw = function () {
             if (this.lines.length <= 0 && this.bars.length <= 0)
@@ -243,6 +243,7 @@ var Picasso;
                 .attr("width", this.width + this.options.marginLeft + this.options.marginRight)
                 .attr("transform", this.translate(-this.options.marginLeft, -this.options.xAxisMargin));
             var x;
+            var xBand = d3.scaleBand().range([0, this.width]);
             if (timescaled)
                 x = d3.scaleTime().range([0, this.width]);
             else
@@ -251,7 +252,7 @@ var Picasso;
             var valueline = d3.line()
                 .x(function (d) { return x(d.key); })
                 .y(function (d) { return y(d.value); })
-                .curve(d3.curveCardinal.tension(0.5));
+                .curve(d3.curveCardinal.tension(0.1));
             var minValue = +Infinity;
             var maxValue = -Infinity;
             this.lines.forEach(function (l) {
@@ -265,8 +266,8 @@ var Picasso;
                 minValue = this.options.min;
             if (this.options.max != null)
                 maxValue = this.options.max;
+            var keys = [];
             if (this.bars.length > 0) {
-                var keys = [];
                 for (var i in this.bars) {
                     for (var j in this.bars[i].data) {
                         if (keys.indexOf(this.bars[i].data[j].key) < 0)
@@ -274,6 +275,24 @@ var Picasso;
                         maxValue = this.max(this.bars[i].data[j].total, maxValue);
                     }
                 }
+            }
+            if (this.lines.length > 0) {
+                for (var i in this.lines) {
+                    for (var j in this.lines[i].data) {
+                        if (this.lines[i].data[j].key instanceof Date) {
+                            if (keys.indexOf(this.lines[i].data[j].key.toDateString()) < 0)
+                                keys.push(this.lines[i].data[j].key.toDateString());
+                        }
+                        else {
+                            if (keys.indexOf(this.lines[i].data[j].key) < 0)
+                                keys.push(this.lines[i].data[j].key);
+                        }
+                        maxValue = this.max(this.lines[i].data[j].value, maxValue);
+                    }
+                }
+            }
+            xBand.domain(keys);
+            if (this.bars.length > 0) {
                 x.domain(keys);
                 y.domain([0, maxValue]).nice();
             }
@@ -281,7 +300,7 @@ var Picasso;
                 if (timescaled)
                     x.domain(d3.extent(this.lines[0].data, function (d) { return d.key; }));
                 else
-                    x.domain(this.lines[0].data.map(function (d) { return d.key; }));
+                    x.domain(keys);
                 y.domain([minValue, maxValue]).nice();
             }
             var xbar;
@@ -360,29 +379,48 @@ var Picasso;
                     .attr("cx", function (d) { return x(d.key) + offset; })
                     .attr("cy", function (d) { return y(d.value); });
             }, this);
-            this.lines.forEach(function (l) {
-                if (!l.tip && !l.onclick)
-                    return;
-                var cl = this["class"]("point-circle-collision");
-                if (l.onclick)
-                    cl += " " + this["class"]("point-circle-collision-onclick");
-                this.svg.selectAll(this.dotClass("point-circle-collision"))
-                    .data(l.data)
-                    .enter().append("circle")
+            if (this.lines.length > 0 && this.bars.length == 0) {
+                var cl = this["class"]("line-collision");
+                this.svg.selectAll(cl)
+                    .data(keys)
+                    .enter().append("rect")
                     .attr("class", cl)
                     .attr("fill", "transparent")
-                    .attr("r", 11)
-                    .attr("cx", function (d) { return x(d.key) + offset; })
-                    .attr("cy", function (d) { return y(d.value); })
-                    .on("mouseover", function (d) { if (l.tip.show)
-                    l.tip.show(d); }.bind(this))
-                    .on("mouseout", function (d) { if (l.tip.hide)
-                    l.tip.hide(d); }.bind(this))
-                    .on("click", function (d) {
-                    if (l.onclick)
-                        l.onclick(d);
+                    .attr("x", function (d) { return xBand(d); })
+                    .attr("y", function (d) { return y(maxValue); })
+                    .attr("height", function (d) { return y(minValue) - y(maxValue); })
+                    .attr("width", xBand.bandwidth())
+                    .on("mouseover", function (d) {
+                    var vals = [];
+                    for (var _i = 0, _a = this.lines; _i < _a.length; _i++) {
+                        var line = _a[_i];
+                        for (var _b = 0, _c = line.data; _b < _c.length; _b++) {
+                            var val = _c[_b];
+                            if (((val.key instanceof Date && val.key.toDateString() == d)
+                                || val.key == d)
+                                && this.linesTip)
+                                vals.push(val);
+                        }
+                    }
+                    if (this.linesTip && vals.length > 0)
+                        this.linesTip.show(vals);
+                }.bind(this))
+                    .on("mouseout", function (d) {
+                    var vals = [];
+                    for (var _i = 0, _a = this.lines; _i < _a.length; _i++) {
+                        var line = _a[_i];
+                        for (var _b = 0, _c = line.data; _b < _c.length; _b++) {
+                            var val = _c[_b];
+                            if (((val.key instanceof Date && val.key.toDateString() == d)
+                                || val.key == d)
+                                && this.linesTip)
+                                vals.push(val);
+                        }
+                    }
+                    if (this.linesTip && vals.length > 0)
+                        this.linesTip.hide(vals);
                 }.bind(this));
-            }.bind(this));
+            }
             this.bars.forEach(function (b, id) {
                 if (!b.tip && !b.onclick)
                     return;

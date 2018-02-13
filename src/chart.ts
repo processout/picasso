@@ -91,6 +91,11 @@ namespace Picasso {
          * @property {any?}
          */
         public tip?: any;
+        /**
+         * Tooltip to be shown for lines chart.
+         * @property {any?}
+         */
+        public linesTip?: any;
     }
 
     /**

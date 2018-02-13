@@ -40,6 +40,12 @@ namespace Picasso {
          * @property {number}
          */
         public value: number;
+
+        /**
+         * Name of the line chart containing this value point
+         * @property {string}
+         */
+        public lineName: string;
     }
 
     /**
