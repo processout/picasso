@@ -82,7 +82,6 @@ namespace Picasso {
          * @return {void}
          */
         public reset(): void {
-            this.cleanupTip();
             this.lines = [];
             this.bars = [];
         }
@@ -143,12 +142,7 @@ namespace Picasso {
          * @return {void}
          */
         public clear(): void {
-            if (this.bars)
-                this.bars.forEach(function(b: Bar) {
-                    if (b.tip) b.tip.hide();
-                }, this);
-            if (this.linesTip)
-                this.linesTip.hide();
+            this.cleanupTip();
         }
     
         /**

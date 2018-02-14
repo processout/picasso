@@ -170,7 +170,6 @@ var Picasso;
                 this.linesTip.destroy();
         };
         BarLineChart.prototype.reset = function () {
-            this.cleanupTip();
             this.lines = [];
             this.bars = [];
         };
@@ -210,13 +209,7 @@ var Picasso;
             this.bars.push(bar);
         };
         BarLineChart.prototype.clear = function () {
-            if (this.bars)
-                this.bars.forEach(function (b) {
-                    if (b.tip)
-                        b.tip.hide();
-                }, this);
-            if (this.linesTip)
-                this.linesTip.hide();
+            this.cleanupTip();
         };
         BarLineChart.prototype.draw = function () {
             if (this.lines.length <= 0 && this.bars.length <= 0)
