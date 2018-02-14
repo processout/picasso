@@ -78,12 +78,28 @@ namespace Picasso {
         }
 
         /**
-         * reset removes all the chart lines and bars, and their associated tips
+         * reset removes all the chart lines and bars
          * @return {void}
          */
         public reset(): void {
+            this.resetLines();
+            this.resetBars();
+        }
+
+        /**
+         * reset removes all the chart lines 
+         * @return {void}
+         */
+        public resetLines(): void {
             this.lines = [];
-            this.bars = [];
+        }
+
+        /**
+         * reset removes all the chart bars
+         * @return {void}
+         */
+        public resetBars(): void {
+            this.lines = [];
         }
 
         /**

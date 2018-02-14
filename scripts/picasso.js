@@ -170,8 +170,14 @@ var Picasso;
                 this.linesTip.destroy();
         };
         BarLineChart.prototype.reset = function () {
+            this.resetLines();
+            this.resetBars();
+        };
+        BarLineChart.prototype.resetLines = function () {
             this.lines = [];
-            this.bars = [];
+        };
+        BarLineChart.prototype.resetBars = function () {
+            this.lines = [];
         };
         BarLineChart.prototype.addLine = function (line) {
             line.name = line.name || "";
