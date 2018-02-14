@@ -78,12 +78,13 @@ namespace Picasso {
         }
 
         /**
-         * resetLines removes all the chart lines and its associated tips
+         * reset removes all the chart lines and bars, and their associated tips
          * @return {void}
          */
-        public resetLines(): void {
+        public reset(): void {
             this.cleanupTip();
             this.lines = [];
+            this.bars = [];
         }
 
         /**
@@ -200,7 +201,7 @@ namespace Picasso {
             var valueline = d3.line()
                 .x(function(d) { return x(d.key); })
                 .y(function(d) { return y(d.value); })
-                .curve(d3.curveCardinal.tension(0.1));
+                .curve(d3.curveCardinal.tension(1));
 
             // Clean up our data sets
             var minValue = +Infinity;
@@ -219,12 +220,15 @@ namespace Picasso {
                 minValue = this.options.min;
             if (this.options.max != null)
                 maxValue = this.options.max;
-            var keys: Array<any> = [];
+            var keys:    Array<any> = [];
+            var keysRaw: Array<any> = [];
             if (this.bars.length > 0) {
                 for (var i in this.bars) {
                     for (var j in this.bars[i].data) {
-                        if (keys.indexOf(this.bars[i].data[j].key) < 0)
+                        if (keys.indexOf(this.bars[i].data[j].key) < 0) {
                             keys.push(this.bars[i].data[j].key);
+                            keysRaw.push(this.bars[i].data[j].key);
+                        }
                         maxValue = this.max(this.bars[i].data[j].total, maxValue);
                     }
                 }
@@ -233,11 +237,15 @@ namespace Picasso {
                 for (var i in this.lines) {
                     for (var j in this.lines[i].data) {
                         if (this.lines[i].data[j].key instanceof Date) {
-                            if (keys.indexOf(this.lines[i].data[j].key.toDateString()) < 0)
+                            if (keys.indexOf(this.lines[i].data[j].key.toDateString()) < 0) {
                                 keys.push(this.lines[i].data[j].key.toDateString());
+                                keysRaw.push(this.lines[i].data[j].key);
+                            }
                         } else {
-                            if (keys.indexOf(this.lines[i].data[j].key) < 0)
+                            if (keys.indexOf(this.lines[i].data[j].key) < 0) {
                                 keys.push(this.lines[i].data[j].key);
+                                keysRaw.push(this.lines[i].data[j].key);
+                            }
                         }
                         maxValue = this.max(this.lines[i].data[j].value, maxValue);
                     }
@@ -354,36 +362,36 @@ namespace Picasso {
                 var cl = this.class("line-collision");
 
                 this.svg.selectAll(cl)
-                        .data(keys)
+                        .data(keysRaw)
                     .enter().append("rect")
                         .attr("class", cl)
                         .attr("fill", "transparent")
-                        .attr("x", function(d) { return xBand(d); })
+                        .attr("x", function(d) { return x(d) - xBand.bandwidth() / 2; })
                         .attr("y", function(d) { return y(maxValue); })
                         .attr("height", function(d) { return y(minValue)-y(maxValue); })
                         .attr("width", xBand.bandwidth())
-                    .on("mouseover", function(d) {
-                        var vals: Array<any> = [];
-                        for (var line of this.lines)
-                            for (var val of line.data)
-                                if (((val.key instanceof Date && val.key.toDateString() == d) 
-                                            || val.key == d)
-                                        && this.linesTip)
-                                    vals.push(val);
-                            if (this.linesTip && vals.length > 0)
-                                this.linesTip.show(vals);
-                    }.bind(this))
-                    .on("mouseout",  function(d) {
-                        var vals: Array<any> = [];
-                        for (var line of this.lines)
-                            for (var val of line.data)
-                                if (((val.key instanceof Date && val.key.toDateString() == d) 
-                                            || val.key == d)
-                                        && this.linesTip)
-                                    vals.push(val);
-                            if (this.linesTip && vals.length > 0)
-                                this.linesTip.hide(vals);
-                    }.bind(this));
+                        .on("mouseover", function(d) {
+                            var vals: Array<any> = [];
+                            for (var line of this.lines)
+                                for (var val of line.data)
+                                    if (((val.key instanceof Date && val.key.toDateString() == d) 
+                                                || val.key == d)
+                                            && this.linesTip)
+                                        vals.push(val);
+                                if (this.linesTip && vals.length > 0)
+                                    this.linesTip.show.call(this, vals);
+                        }.bind(this))
+                        .on("mouseout",  function(d) {
+                            var vals: Array<any> = [];
+                            for (var line of this.lines)
+                                for (var val of line.data)
+                                    if (((val.key instanceof Date && val.key.toDateString() == d) 
+                                                || val.key == d)
+                                            && this.linesTip)
+                                        vals.push(val);
+                                if (this.linesTip && vals.length > 0)
+                                    this.linesTip.hide.call(this, vals);
+                        }.bind(this));
             }
 
             // And add the tooltip of the bars as well
