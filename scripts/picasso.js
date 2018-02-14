@@ -400,7 +400,7 @@ var Picasso;
                         var line = _a[_i];
                         for (var _b = 0, _c = line.data; _b < _c.length; _b++) {
                             var val = _c[_b];
-                            if (((val.key instanceof Date && val.key.toDateString() == d)
+                            if (((val.key instanceof Date && val.key.toDateString() == d.toDateString())
                                 || val.key == d)
                                 && this.linesTip)
                                 vals.push(val);
@@ -415,7 +415,7 @@ var Picasso;
                         var line = _a[_i];
                         for (var _b = 0, _c = line.data; _b < _c.length; _b++) {
                             var val = _c[_b];
-                            if (((val.key instanceof Date && val.key.toDateString() == d)
+                            if (((val.key instanceof Date && val.key.toDateString() == d.toDateString())
                                 || val.key == d)
                                 && this.linesTip)
                                 vals.push(val);

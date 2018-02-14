@@ -368,7 +368,7 @@ namespace Picasso {
                             var vals: Array<any> = [];
                             for (var line of this.lines)
                                 for (var val of line.data)
-                                    if (((val.key instanceof Date && val.key.toDateString() == d) 
+                                    if (((val.key instanceof Date && val.key.toDateString() == d.toDateString()) 
                                                 || val.key == d)
                                             && this.linesTip)
                                         vals.push(val);
@@ -379,7 +379,7 @@ namespace Picasso {
                             var vals: Array<any> = [];
                             for (var line of this.lines)
                                 for (var val of line.data)
-                                    if (((val.key instanceof Date && val.key.toDateString() == d) 
+                                    if (((val.key instanceof Date && val.key.toDateString() == d.toDateString()) 
                                                 || val.key == d)
                                             && this.linesTip)
                                         vals.push(val);
