@@ -86,16 +86,16 @@ namespace Picasso {
          */
         public yAxisFormatter: (d: any) => string;
         /**
-         * If the scale is a time or not
-         * @property {boolean}
-         */
-        public timescaled?: boolean;
-        /**
          * Tooltip to be shown on the chart elements. Can only be used for
          * MapChart charts
          * @property {any?}
          */
         public tip?: any;
+        /**
+         * Tooltip to be shown for lines chart.
+         * @property {any?}
+         */
+        public linesTip?: any;
     }
 
     /**
@@ -150,7 +150,6 @@ namespace Picasso {
             opt.xAxisTicks = (opt.xAxisTicks != null) ? opt.xAxisTicks : 5;
             opt.yAxisTicks = (opt.yAxisTicks != null) ? opt.yAxisTicks : 5;
             opt.yAxisFormatter = opt.yAxisFormatter || function(d) { return d; };
-            opt.timescaled = (opt.timescaled != null) ? opt.timescaled : true;
 
             this.init(el, opt);
 
@@ -270,6 +269,43 @@ namespace Picasso {
          */
         protected isFunction(obj: any): boolean {
             return !!(obj && obj.constructor && obj.call && obj.apply);
+        }
+
+        protected wrap(text, width): void {
+            text.each(function() {
+                var text = d3.select(this),
+                    words = text.text().split(/\s+/).reverse(),
+                    word,
+                    line = [],
+                    lineNumber = 0,
+                    lineHeight = 1.1, // ems
+                    y = text.attr("y"),
+                    dy = parseFloat(text.attr("dy")),
+                    tspan = text.text(null).append("tspan")
+                        .attr("x", 0).attr("y", y).attr("dy", dy + "em");
+                while (word = words.pop()) {
+                    line.push(word);
+                    tspan.text(line.join(" "));
+                    if (tspan.node().getComputedTextLength() > width) {
+                        if (line.length == 1) {
+                            // It's just a very long word
+                            var tmp = word;
+                            while (tspan.node().getComputedTextLength() > width) {
+                                tmp = tmp.substring(0, tmp.length - 1);
+                                tspan.text(tmp+"…");
+                            }
+                            continue;
+                        }
+                        line.pop();
+                        tspan.text(line.join(" "));
+                        line = [word];
+                        tspan = text.append("tspan")
+                            .attr("x", 0).attr("y", y)
+                            .attr("dy", ++lineNumber * lineHeight + dy + "em")
+                            .text(word);
+                    }
+                }
+            });
         }
     }
 }

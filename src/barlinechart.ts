@@ -9,8 +9,8 @@ namespace Picasso {
      */
     export class Line {
         public name: string;
+        public color: string;
         public colors?: GradientColor[];
-        public tip?: any;
         public onclick?: any;
         public data: LineData[];
 
@@ -39,11 +39,18 @@ namespace Picasso {
          * @property {Array<Line>}
          */
         protected lines: Line[] = [];
+
         /**
          * Bar drawn. Can be null if none should be drawn
          * @property {Bar}
          */
-        protected bar: Bar = null;
+        protected bars: Bar[] = [];
+
+        /**
+         * linesTip contains the tip to be shown for lines drawn on the chart
+         * @property {any?}
+         */
+        protected linesTip?: any;
 
         /**
          * Constructor
@@ -52,6 +59,8 @@ namespace Picasso {
          */
         constructor(el: string, options: Options) {
             super(el, options);
+
+            if (options.linesTip) this.linesTip = this.initTooltip(options.linesTip);
         }
 
         /**
@@ -60,21 +69,36 @@ namespace Picasso {
          */
         public cleanupTip(): void {
             super.cleanupTip();
-            if (this.bar && this.bar.tip) {
-                this.bar.tip.destroy();
+            for (var i in this.bars) {
+                if (this.bars[i].tip)
+                    this.bars[i].tip.destroy();
             }
-            for (var i in this.lines) {
-                if (this.lines[i].tip)
-                    this.lines[i].tip.destroy();
-            }
+            if (this.linesTip)
+                this.linesTip.destroy();
         }
 
         /**
-         * resetLines removes all the chart lines and its associated tips
+         * reset removes all the chart lines and bars
+         * @return {void}
+         */
+        public reset(): void {
+            this.resetLines();
+            this.resetBars();
+        }
+
+        /**
+         * reset removes all the chart lines 
          * @return {void}
          */
         public resetLines(): void {
-            this.cleanupTip();
+            this.lines = [];
+        }
+
+        /**
+         * reset removes all the chart bars
+         * @return {void}
+         */
+        public resetBars(): void {
             this.lines = [];
         }
 
@@ -86,9 +110,11 @@ namespace Picasso {
         public addLine(line: Line): void {
             line.name = line.name || "";
             line.colors = line.colors || null;
-            line.tip = this.initTooltip(line.tip);
             line.dotOutsideSize = line.dotOutsideSize == null ? 5 : line.dotOutsideSize;
             line.dotInsideSize = line.dotInsideSize == null ? 3 : line.dotInsideSize;
+
+            for (var point of line.data)
+                point.lineName = line.name;
 
             this.lines.push(line);
         }
@@ -99,9 +125,8 @@ namespace Picasso {
          * @param bar {Bar}
          * @return {void}
          */
-        public setBar(bar: Bar): void {
+        public addBar(bar: Bar): void {
             if (!bar || !bar.data.length) {
-                this.bar = null;
                 return;
             }
             bar.name = bar.name || "";
@@ -125,8 +150,7 @@ namespace Picasso {
                 d.total = t;
             }
 
-            this.options.timescaled = false;
-            this.bar = bar;
+            this.bars.push(bar);
         }
 
         /**
@@ -134,11 +158,7 @@ namespace Picasso {
          * @return {void}
          */
         public clear(): void {
-            if (this.lines)
-                this.lines.forEach(function(l: Line) {
-                    if (l.tip) l.tip.hide();
-                });
-            if (this.bar && this.bar.tip) this.bar.tip.hide();
+            this.cleanupTip();
         }
     
         /**
@@ -146,8 +166,30 @@ namespace Picasso {
          * @return {void}
          */
         public draw(): void {
-            if (this.lines.length <= 0 && !this.bar)
+            if (this.lines.length <= 0 && this.bars.length <= 0)
                 return;
+
+            // Compute if the chart is going to be time scaled or not
+            var timescaled = false;
+            this.lines.forEach(function(l: Line) {
+                l.data.forEach(function(d: LineData) {
+                    if (d.key instanceof Date)
+                        timescaled = true;
+                    
+                    if (timescaled && !(d.key instanceof Date))
+                        throw new Error("The lines provided contained both Date and not dates for its keys. The keys should either all be Dates, or none.");
+                }, this);
+            }, this);
+
+            if (timescaled && this.bars.length > 0)
+                throw new Error("The lines provided all contained Dates for its keys, but bars were also provided. Please don't use Dates as keys on your line charts when using bars as well.");
+
+            this.bars.forEach(function(b: Bar) {
+                b.data.forEach(function(d: BarData) {
+                    if (d.key instanceof Date)
+                        throw new Error("The bar chart contained Dates as keys, which is not supported.");
+                }, this);
+            }, this);
 
             // Add background to chart
             this.svg.append("g").append("rect")
@@ -158,20 +200,18 @@ namespace Picasso {
 
             // Define our axis
             var x;
-            if (this.options.timescaled)
+            var xBand = d3.scaleBand().range([0, this.width]); // no padding
+            if (timescaled)
                 x = d3.scaleTime().range([0, this.width]);
             else
-                x = d3.scaleBand().range([0, this.width]).padding(0.1)
+                x = d3.scaleBand().range([0, this.width]).padding(0.1);
             var y = d3.scaleLinear().range([this.height, 0]);
-            var z;
-            if (this.bar)
-                z = d3.scaleOrdinal().range(this.bar.colors);
 
             // Define our value line and curve
             var valueline = d3.line()
                 .x(function(d) { return x(d.key); })
                 .y(function(d) { return y(d.value); })
-                .curve(d3.curveCardinal.tension(0.5));
+                .curve(d3.curveCardinal.tension(1));
 
             // Clean up our data sets
             var minValue = +Infinity;
@@ -182,34 +222,68 @@ namespace Picasso {
 
                     minValue = this.min(minValue, d.value);
                     maxValue = this.max(maxValue, d.value);
-                }.bind(this));
-            }.bind(this));
+                }, this);
+            }, this);
 
             // Scale the range of the data
             if (this.options.min != null)
                 minValue = this.options.min;
             if (this.options.max != null)
                 maxValue = this.options.max;
-            if (this.bar) {
-                x.domain(this.bar.data.map(function(d) { return d.key; }));
-                maxValue = this.max(
-                    d3.max(this.bar.data, function(d) { return d.total; }), 
-                    maxValue
-                );
+            var keys:    Array<any> = [];
+            var keysRaw: Array<any> = [];
+            if (this.bars.length > 0) {
+                for (var i in this.bars) {
+                    for (var j in this.bars[i].data) {
+                        if (keys.indexOf(this.bars[i].data[j].key) < 0) {
+                            keys.push(this.bars[i].data[j].key);
+                            keysRaw.push(this.bars[i].data[j].key);
+                        }
+                        maxValue = this.max(this.bars[i].data[j].total, maxValue);
+                    }
+                }
+            }
+            if (this.lines.length > 0) {
+                for (var i in this.lines) {
+                    for (var j in this.lines[i].data) {
+                        if (this.lines[i].data[j].key instanceof Date) {
+                            if (keys.indexOf(this.lines[i].data[j].key.toDateString()) < 0) {
+                                keys.push(this.lines[i].data[j].key.toDateString());
+                                keysRaw.push(this.lines[i].data[j].key);
+                            }
+                        } else {
+                            if (keys.indexOf(this.lines[i].data[j].key) < 0) {
+                                keys.push(this.lines[i].data[j].key);
+                                keysRaw.push(this.lines[i].data[j].key);
+                            }
+                        }
+                        maxValue = this.max(this.lines[i].data[j].value, maxValue);
+                    }
+                }
+            }
+            xBand.domain(keys);
+
+            if (this.bars.length > 0) {
+                x.domain(keys);
                 y.domain([0, maxValue]).nice();
-                z.domain(this.bar.columns);
             } else {
-                if (this.options.timescaled)
+                if (timescaled)
                     x.domain(d3.extent(this.lines[0].data, function(d: LineData) { return d.key; }));
                 else
-                    x.domain(this.lines[0].data.map(function(d) { return d.key; }));
+                    x.domain(keys);
                 y.domain([minValue, maxValue]).nice();
             }
 
             // Add our bar (if any)
-            if (this.bar) {
+            var xbar;
+            if (this.bars.length > 0)
+                xbar = d3.scaleBand().padding(0.05)
+                    .domain(this.bars.map(function(d, id){ return id; }))
+                    .rangeRound([0, x.bandwidth()]);
+            this.bars.forEach(function(b: Bar, id) {
+                var z = d3.scaleOrdinal().range(b.colors).domain(b.columns);
                 this.svg.append("g").selectAll(".bar-group")
-                    .data(d3.stack().keys(this.bar.columns)(this.bar.data))
+                    .data(d3.stack().keys(b.columns)(b.data))
                 .enter().append("g")
                     .attr("class", "bar-group")
                     .attr("fill", function(d) {
@@ -219,10 +293,10 @@ namespace Picasso {
                     .data(function(d) { return d; })
                 .enter().append("rect")
                     .attr("class", "bar")
-                    .attr("x", function(d) { return x(d.data.key); })
+                    .attr("x", function(d) { return x(d.data.key) + xbar(id); })
                     .attr("y", function(d) { return y(d[1]); })
-                    .attr("height", function(d) { return y(d[0]) - y(d[1]); })
-                    .attr("width", x.bandwidth())
+                    .attr("height", function(d) { return this.max(1, y(d[0]) - y(d[1])); }.bind(this))
+                    .attr("width", xbar.bandwidth())
                     .attr("fill", function(d) {
                         if (d.data.color && this.isFunction(d.data.color)) {
                             return d.data.color(d);
@@ -233,11 +307,11 @@ namespace Picasso {
 
                         return;
                     }.bind(this));
-            }
+            }, this);
 
             // Compute a possible offset for our lines
             var offset = 0;
-            if (!this.options.timescaled)
+            if (!timescaled)
                 offset =  x.bandwidth() / 2;
 
             // Loop over our lines
@@ -250,7 +324,9 @@ namespace Picasso {
                     .attr("class", this.class("line") + " " + l.name)
                     .attr("d", valueline);
                 // Add support for custom/gradient colors on lines
-                if (l.colors) {
+                if (l.color) {
+                    drawnLine.attr("style", `stroke: ${l.color}`);
+                } else if (l.colors) {
                     // Correctly format our colors
                     for (var i in l.colors) {
                         if (l.colors[i].value) {
@@ -288,59 +364,79 @@ namespace Picasso {
                     .attr("r", l.dotInsideSize)
                     .attr("cx", function(d: LineData) { return x(d.key) + offset; })
                     .attr("cy", function(d: LineData) { return y(d.value); });
-            }.bind(this));
+            }, this);
 
-            // Iterate again to add line tooltips
-            this.lines.forEach(function(l: Line) {
-                if (l.tip || l.onclick) {
-                    var cl = this.class("point-circle-collision");
-                    if (l.onclick)
-                        cl += " " + this.class("point-circle-collision-onclick"); 
+            // Add our line tooltips if there's no bar charts on this chart
+            // (otherwise we'd overload the chart with tooltip collision boxes)
+            if (this.lines.length > 0 && this.bars.length == 0) {
+                var cl = this.class("line-collision");
 
-                    this.svg.selectAll(this.dotClass("point-circle-collision"))
-                        .data(l.data)
-                    .enter().append("circle")
+                this.svg.selectAll(cl)
+                        .data(keysRaw)
+                    .enter().append("rect")
                         .attr("class", cl)
                         .attr("fill", "transparent")
-                        .attr("r", 11)
-                        .attr("cx", function(d: LineData) { return x(d.key) + offset; })
-                        .attr("cy", function(d: LineData) { return y(d.value); })
-                    .on("mouseover", function(d) { if (l.tip.show) l.tip.show(d); }.bind(this))
-                    .on("mouseout",  function(d) { if (l.tip.hide) l.tip.hide(d); }.bind(this))
-                    .on("click", function(d) {
-                        if (l.onclick) l.onclick(d);
-                    }.bind(this));
-                }
-            }.bind(this));
+                        .attr("x", function(d) { return x(d) - xBand.bandwidth() / 2; })
+                        .attr("y", function(d) { return y(maxValue); })
+                        .attr("height", function(d) { return y(minValue)-y(maxValue); })
+                        .attr("width", xBand.bandwidth())
+                        .on("mouseover", function(d) {
+                            var vals: Array<any> = [];
+                            for (var line of this.lines)
+                                for (var val of line.data)
+                                    if (((val.key instanceof Date && val.key.toDateString() == d.toDateString()) 
+                                                || val.key == d)
+                                            && this.linesTip)
+                                        vals.push(val);
+                                if (this.linesTip && vals.length > 0)
+                                    this.linesTip.show.call(this, vals);
+                        }.bind(this))
+                        .on("mouseout",  function(d) {
+                            var vals: Array<any> = [];
+                            for (var line of this.lines)
+                                for (var val of line.data)
+                                    if (((val.key instanceof Date && val.key.toDateString() == d.toDateString()) 
+                                                || val.key == d)
+                                            && this.linesTip)
+                                        vals.push(val);
+                                if (this.linesTip && vals.length > 0)
+                                    this.linesTip.hide.call(this, vals);
+                        }.bind(this));
+            }
 
-            // And add the tooltip of the bar as well
-            if (this.bar && (this.bar.tip || this.bar.onclick)) {
+            // And add the tooltip of the bars as well
+            this.bars.forEach(function(b: Bar, id) {
+                if (!b.tip && !b.onclick)
+                    return;
+
                 var cl = this.class("bar-collision");
-                if (this.bar.onclick)
+                if (b.onclick)
                     cl += " " + this.class("bar-collision-onclick"); 
 
                 this.svg.append("g")
                     .attr("fill", "transparent")
                 .selectAll(this.dotClass("bar-collision"))
-                    .data(this.bar.data)
+                    .data(b.data)
                 .enter().append("rect")
                     .attr("class", cl)
-                    .attr("x", function(d) { return x(d.key); })
+                    .attr("x", function(d) { return x(d.key) + xbar(id); })
                     .attr("y", function(d) { return y(maxValue); })
                     .attr("height", function(d) { return y(0)-y(maxValue); })
-                    .attr("width", x.bandwidth())
-                .on("mouseover", function(d) { if (this.bar.tip) this.bar.tip.show(d); }.bind(this))
-                .on("mouseout",  function(d) { if (this.bar.tip) this.bar.tip.hide(d); }.bind(this))
+                    .attr("width", xbar.bandwidth())
+                .on("mouseover", function(d) { if (b.tip) b.tip.show(d); }.bind(this))
+                .on("mouseout",  function(d) { if (b.tip) b.tip.hide(d); }.bind(this))
                 .on("click", function(d) {
-                    if (this.bar.onclick) this.bar.onclick(d);
+                    if (b.onclick) b.onclick(d);
                 }.bind(this));
-            }
+            }, this);
 
             // Add the X Axis
             if (this.options.xLegendBottom) {
                 this.svg.append("g").attr("class", "x-axis")
                     .attr("transform", this.translate(0, this.height + this.options.xAxisMargin))
                     .call(d3.axisBottom(x).ticks(this.options.xAxisTicks));
+                if (!timescaled)
+                    this.svg.selectAll(".tick text").call(this.wrap, x.bandwidth());
             }
 
             // Add the Y Axis
