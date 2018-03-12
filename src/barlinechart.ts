@@ -247,8 +247,8 @@ namespace Picasso {
                 for (var i in this.lines) {
                     for (var j in this.lines[i].data) {
                         if (this.lines[i].data[j].key instanceof Date) {
-                            if (keys.indexOf(this.lines[i].data[j].key.toDateString()) < 0) {
-                                keys.push(this.lines[i].data[j].key.toDateString());
+                            if (keys.indexOf(this.lines[i].data[j].key.toString()) < 0) {
+                                keys.push(this.lines[i].data[j].key.toString());
                                 keysRaw.push(this.lines[i].data[j].key);
                             }
                         } else {
@@ -384,7 +384,7 @@ namespace Picasso {
                             var vals: Array<any> = [];
                             for (var line of this.lines)
                                 for (var val of line.data)
-                                    if (((val.key instanceof Date && val.key.toDateString() == d.toDateString()) 
+                                    if (((val.key instanceof Date && val.key.toString() == d.toString()) 
                                                 || val.key == d)
                                             && this.linesTip)
                                         vals.push(val);
@@ -395,7 +395,7 @@ namespace Picasso {
                             var vals: Array<any> = [];
                             for (var line of this.lines)
                                 for (var val of line.data)
-                                    if (((val.key instanceof Date && val.key.toDateString() == d.toDateString()) 
+                                    if (((val.key instanceof Date && val.key.toString() == d.toString()) 
                                                 || val.key == d)
                                             && this.linesTip)
                                         vals.push(val);
