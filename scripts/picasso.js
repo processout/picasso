@@ -283,8 +283,8 @@ var Picasso;
                 for (var i in this.lines) {
                     for (var j in this.lines[i].data) {
                         if (this.lines[i].data[j].key instanceof Date) {
-                            if (keys.indexOf(this.lines[i].data[j].key.toDateString()) < 0) {
-                                keys.push(this.lines[i].data[j].key.toDateString());
+                            if (keys.indexOf(this.lines[i].data[j].key.toString()) < 0) {
+                                keys.push(this.lines[i].data[j].key.toString());
                                 keysRaw.push(this.lines[i].data[j].key);
                             }
                         }
@@ -406,7 +406,7 @@ var Picasso;
                         var line = _a[_i];
                         for (var _b = 0, _c = line.data; _b < _c.length; _b++) {
                             var val = _c[_b];
-                            if (((val.key instanceof Date && val.key.toDateString() == d.toDateString())
+                            if (((val.key instanceof Date && val.key.toString() == d.toString())
                                 || val.key == d)
                                 && this.linesTip)
                                 vals.push(val);
@@ -421,7 +421,7 @@ var Picasso;
                         var line = _a[_i];
                         for (var _b = 0, _c = line.data; _b < _c.length; _b++) {
                             var val = _c[_b];
-                            if (((val.key instanceof Date && val.key.toDateString() == d.toDateString())
+                            if (((val.key instanceof Date && val.key.toString() == d.toString())
                                 || val.key == d)
                                 && this.linesTip)
                                 vals.push(val);
