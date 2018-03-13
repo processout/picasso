@@ -99,7 +99,7 @@ namespace Picasso {
          * @return {void}
          */
         public resetBars(): void {
-            this.lines = [];
+            this.bars = [];
         }
 
         /**
