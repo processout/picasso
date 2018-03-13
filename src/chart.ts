@@ -271,6 +271,11 @@ namespace Picasso {
             return !!(obj && obj.constructor && obj.call && obj.apply);
         }
 
+        /**
+         * wraps the provided text at the given width
+         * @param text {string}
+         * @param width {number}
+         */
         protected wrap(text, width): void {
             text.each(function() {
                 var text = d3.select(this),
