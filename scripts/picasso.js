@@ -177,7 +177,7 @@ var Picasso;
             this.lines = [];
         };
         BarLineChart.prototype.resetBars = function () {
-            this.lines = [];
+            this.bars = [];
         };
         BarLineChart.prototype.addLine = function (line) {
             line.name = line.name || "";
