@@ -304,8 +304,15 @@ var Picasso;
                 y.domain([0, maxValue]).nice();
             }
             else {
-                if (timescaled)
-                    x.domain(d3.extent(this.lines[0].data, function (d) { return d.key; }));
+                if (timescaled) {
+                    keysRaw.sort(function (a, b) {
+                        return a.getTime() - b.getTime();
+                    });
+                    keys = [];
+                    for (var i in keysRaw)
+                        keys.push(keysRaw[i].toString());
+                    x.domain(d3.extent(keysRaw, function (d) { return d; }));
+                }
                 else
                     x.domain(keys);
                 y.domain([minValue, maxValue]).nice();
