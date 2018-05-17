@@ -142,7 +142,7 @@ namespace Picasso {
             opt.marginBottom = (opt.marginBottom != null) ? opt.marginBottom : opt.yAxisMargin + 30;
             opt.marginLeft = (opt.marginLeft != null) ? opt.marginLeft : opt.xAxisMargin + 40;
 
-            opt.min = (opt.min != null) ? opt.max : 0;
+            opt.min = (opt.min != null) ? opt.min : null;
             opt.max = (opt.max != null) ? opt.max : null;
             opt.yLegendLeft = (opt.yLegendLeft != null) ? opt.yLegendLeft : true;
             opt.yLegendRight = (opt.yLegendRight != null) ? opt.yLegendRight : true;

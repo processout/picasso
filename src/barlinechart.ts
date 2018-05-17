@@ -263,21 +263,20 @@ namespace Picasso {
             }
             xBand.domain(keys);
 
-            if (this.bars.length > 0) {
+            // If we have bar charts, we want the chart to always start at 0
+            if (this.bars.length > 0)
+                minValue = 0;
+
+            if (timescaled) {
+                keysRaw.sort(function(a, b) {
+                    return a.getTime() - b.getTime();
+                });
+                keys = []; // Reset the keys
+                for (var i in keysRaw) keys.push(keysRaw[i].toString());
+                x.domain(d3.extent(keysRaw, function(d) { return d; }));
+            } else
                 x.domain(keys);
-                y.domain([0, maxValue]).nice();
-            } else {
-                if (timescaled) {
-                    keysRaw.sort(function(a, b) {
-                        return a.getTime() - b.getTime();
-                    });
-                    keys = []; // Reset the keys
-                    for (var i in keysRaw) keys.push(keysRaw[i].toString());
-                    x.domain(d3.extent(keysRaw, function(d) { return d; }));
-                } else
-                    x.domain(keys);
-                y.domain([minValue, maxValue]).nice();
-            }
+            y.domain([minValue, maxValue]).nice();
 
             // Add our bar (if any)
             var xbar;

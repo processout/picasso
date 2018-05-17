@@ -27,7 +27,7 @@ var Picasso;
             opt.marginRight = (opt.marginRight != null) ? opt.marginRight : opt.xAxisMargin + 40;
             opt.marginBottom = (opt.marginBottom != null) ? opt.marginBottom : opt.yAxisMargin + 30;
             opt.marginLeft = (opt.marginLeft != null) ? opt.marginLeft : opt.xAxisMargin + 40;
-            opt.min = (opt.min != null) ? opt.max : 0;
+            opt.min = (opt.min != null) ? opt.min : null;
             opt.max = (opt.max != null) ? opt.max : null;
             opt.yLegendLeft = (opt.yLegendLeft != null) ? opt.yLegendLeft : true;
             opt.yLegendRight = (opt.yLegendRight != null) ? opt.yLegendRight : true;
@@ -299,24 +299,20 @@ var Picasso;
                 }
             }
             xBand.domain(keys);
-            if (this.bars.length > 0) {
+            if (this.bars.length > 0)
+                minValue = 0;
+            if (timescaled) {
+                keysRaw.sort(function (a, b) {
+                    return a.getTime() - b.getTime();
+                });
+                keys = [];
+                for (var i in keysRaw)
+                    keys.push(keysRaw[i].toString());
+                x.domain(d3.extent(keysRaw, function (d) { return d; }));
+            }
+            else
                 x.domain(keys);
-                y.domain([0, maxValue]).nice();
-            }
-            else {
-                if (timescaled) {
-                    keysRaw.sort(function (a, b) {
-                        return a.getTime() - b.getTime();
-                    });
-                    keys = [];
-                    for (var i in keysRaw)
-                        keys.push(keysRaw[i].toString());
-                    x.domain(d3.extent(keysRaw, function (d) { return d; }));
-                }
-                else
-                    x.domain(keys);
-                y.domain([minValue, maxValue]).nice();
-            }
+            y.domain([minValue, maxValue]).nice();
             var xbar;
             if (this.bars.length > 0)
                 xbar = d3.scaleBand().padding(0.05)
