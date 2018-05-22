@@ -82,8 +82,10 @@
 <body>
 
 <div style="height: 8em;"></div>
+<svg class="chart line-chart" id="bar-chart" width="600" height="300"></svg>
 <svg class="chart line-chart" id="bar-line-chart" width="600" height="300"></svg>
 <svg class="chart line-chart" id="timeseries-chart" width="600" height="300"></svg>
+<svg class="chart line-chart" id="timeseries-chart-percentage" width="600" height="300"></svg>
 <svg class="chart line-chart no-background" id="line-gradient-chart" width="600" height="300"></svg>
 <svg class="chart map-chart" id="map-chart" width="600" height="300"></svg>
 
@@ -245,6 +247,33 @@ graph.addBar({
 });
 graph.draw();
 
+// Bar chart only
+var graph = new Picasso.BarLineChart("#bar-chart", {
+    yAxisFormatter: function(d) {
+        return "$"+d;
+    }
+});
+graph.addBar({
+    data: [{
+        "key": "asdkjnasdnasdjinasidnasijndiasdnaisjndiasnd",
+        "First": 20,
+    }, {
+        "key": "Another quite long label",
+        color: "blue",
+        "First": 15
+    }, {
+        "key": "One more for the C label",
+        "First": 30
+    }, {
+        "key": "Apparently we need a final one on a third line maybe?",
+        "First": 30
+    }],
+    colors: ["green"],
+    tip: function(d) { return d.total + " for " + d.key + " (bar 2)"; },
+    onclick: function(d) { console.log(d); }
+});
+graph.draw();
+
 // Timeseries chart
 var timeseries = new Picasso.BarLineChart("#timeseries-chart", {
     yAxisFormatter: function(d) {
@@ -305,6 +334,54 @@ timeseries.addLine({
     }, {
         key: new Date(2018, 1, 1),
         value: 30
+    }],
+});
+timeseries.draw();
+
+// Timeseries chart with percentage
+var timeseries = new Picasso.BarLineChart("#timeseries-chart-percentage", {
+    yAxisFormatter: function(d) {
+        return d+"%";
+    },
+    linesTip: function(d) {
+        var t = d[0].key + "<br />";
+        for (var line of d) {
+            t += line.lineName + ": " + line.value + "<br />";
+        }
+        return t;
+    },
+});
+timeseries.addLine({
+    name: "line name 1",
+    color: "red",
+    data: [{
+        key: new Date(2016, 1, 1),
+        value: 80
+    }, {
+        key: new Date(2017, 1, 1),
+        value: 70,
+    }, {
+        key: new Date(2018, 1, 1),
+        value: 75
+    }, {
+        key: new Date(2019, 1, 1),
+        value: 80
+    }],
+});
+timeseries.addLine({
+    name: "line name 2",
+    data: [{
+        key: new Date(2016, 1, 1),
+        value: 60
+    }, {
+        key: new Date(2017, 1, 1),
+        value: 75,
+    }, {
+        key: new Date(2018, 1, 1),
+        value: 90
+    }, {
+        key: new Date(2019, 1, 1),
+        value: 85
     }],
 });
 timeseries.draw();
