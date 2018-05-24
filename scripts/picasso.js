@@ -229,12 +229,12 @@ var Picasso;
                         throw new Error("The lines provided contained both Date and not dates for its keys. The keys should either all be Dates, or none.");
                 }, this);
             }, this);
-            if (timescaled && this.bars.length > 0)
-                throw new Error("The lines provided all contained Dates for its keys, but bars were also provided. Please don't use Dates as keys on your line charts when using bars as well.");
             this.bars.forEach(function (b) {
                 b.data.forEach(function (d) {
                     if (d.key instanceof Date)
-                        throw new Error("The bar chart contained Dates as keys, which is not supported.");
+                        timescaled = true;
+                    if (timescaled && !(d.key instanceof Date))
+                        throw new Error("The bars provided contained both Date and not dates for its keys. The keys should either all be Dates, or none.");
                 }, this);
             }, this);
             this.svg.append("g").append("rect")
@@ -243,7 +243,7 @@ var Picasso;
                 .attr("width", this.width + this.options.marginLeft + this.options.marginRight)
                 .attr("transform", this.translate(-this.options.marginLeft, -this.options.xAxisMargin));
             var x;
-            var xBand = d3.scaleBand().range([0, this.width]);
+            var xBand = d3.scaleBand().range([0, this.width]).padding(0.1);
             if (timescaled)
                 x = d3.scaleTime().range([0, this.width]);
             else
@@ -314,10 +314,16 @@ var Picasso;
                 x.domain(keys);
             y.domain([minValue, maxValue]).nice();
             var xbar;
-            if (this.bars.length > 0)
+            if (this.bars.length > 0) {
+                var bd = 10;
+                if (!timescaled)
+                    bd = x.bandwidth();
+                else
+                    bd = xBand.bandwidth();
                 xbar = d3.scaleBand().padding(0.05)
                     .domain(this.bars.map(function (d, id) { return id; }))
-                    .rangeRound([0, x.bandwidth()]);
+                    .rangeRound([0, bd]);
+            }
             this.bars.forEach(function (b, id) {
                 var z = d3.scaleOrdinal().range(b.colors).domain(b.columns);
                 this.svg.append("g").selectAll(".bar-group")
@@ -331,7 +337,8 @@ var Picasso;
                     .data(function (d) { return d; })
                     .enter().append("rect")
                     .attr("class", "bar")
-                    .attr("x", function (d) { return x(d.data.key) + xbar(id); })
+                    .attr("x", function (d) { if (timescaled)
+                    return xBand(d.data.key); return x(d.data.key) + xbar(id); })
                     .attr("y", function (d) { return y(d[1]); })
                     .attr("height", function (d) { return this.max(1, y(d[0]) - y(d[1])); }.bind(this))
                     .attr("width", xbar.bandwidth())
@@ -446,7 +453,8 @@ var Picasso;
                     .data(b.data)
                     .enter().append("rect")
                     .attr("class", cl)
-                    .attr("x", function (d) { return x(d.key) + xbar(id); })
+                    .attr("x", function (d) { if (timescaled)
+                    return xBand(d.key); return x(d.key) + xbar(id); })
                     .attr("y", function (d) { return y(maxValue); })
                     .attr("height", function (d) { return y(0) - y(maxValue); })
                     .attr("width", xbar.bandwidth())
