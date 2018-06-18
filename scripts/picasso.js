@@ -253,21 +253,16 @@ var Picasso;
                 .x(function (d) { return x(d.key); })
                 .y(function (d) { return y(d.value); })
                 .curve(d3.curveCardinal.tension(1));
-            var minValue = +Infinity;
-            var maxValue = -Infinity;
             this.lines.forEach(function (l) {
                 l.data.forEach(function (d) {
                     d.value = +d.value;
-                    minValue = this.min(minValue, d.value);
-                    maxValue = this.max(maxValue, d.value);
                 }, this);
             }, this);
-            if (this.options.min != null)
-                minValue = this.options.min;
-            if (this.options.max != null)
-                maxValue = this.options.max;
+            var minValue = +Infinity;
+            var maxValue = -Infinity;
             var keys = [];
             var keysRaw = [];
+            var nbBars = 0;
             if (this.bars.length > 0) {
                 for (var i in this.bars) {
                     for (var j in this.bars[i].data) {
@@ -276,6 +271,8 @@ var Picasso;
                             keysRaw.push(this.bars[i].data[j].key);
                         }
                         maxValue = this.max(this.bars[i].data[j].total, maxValue);
+                        minValue = this.min(this.bars[i].data[j].total, minValue);
+                        nbBars++;
                     }
                 }
             }
@@ -295,11 +292,18 @@ var Picasso;
                             }
                         }
                         maxValue = this.max(this.lines[i].data[j].value, maxValue);
+                        minValue = this.min(this.lines[i].data[j].value, minValue);
                     }
                 }
             }
+            minValue -= minValue * 0.1;
+            maxValue += maxValue * 0.1;
+            if (this.options.min != null)
+                minValue = this.options.min;
+            if (this.options.max != null)
+                maxValue = this.options.max;
             xBand.domain(keys);
-            if (this.bars.length > 0)
+            if (nbBars == 1)
                 minValue = 0;
             if (timescaled) {
                 keysRaw.sort(function (a, b) {
@@ -340,7 +344,7 @@ var Picasso;
                     .attr("x", function (d) { var tmp = x(d.data.key); if (timescaled)
                     tmp = xBand(d.data.key); return tmp + xbar(id); })
                     .attr("y", function (d) { return y(d[1]); })
-                    .attr("height", function (d) { return this.max(1, y(d[0]) - y(d[1])); }.bind(this))
+                    .attr("height", function (d) { return this.max(1, y(minValue) - y(d[1])); }.bind(this))
                     .attr("width", xbar.bandwidth())
                     .attr("fill", function (d) {
                     if (d.data.color && this.isFunction(d.data.color)) {
