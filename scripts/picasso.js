@@ -162,9 +162,10 @@ var Picasso;
         }
         BarLineChart.prototype.cleanupTip = function () {
             _super.prototype.cleanupTip.call(this);
-            for (var i in this.bars) {
-                if (this.bars[i].tip)
-                    this.bars[i].tip.destroy();
+            for (var _i = 0, _a = this.bars; _i < _a.length; _i++) {
+                var bar = _a[_i];
+                if (bar.tip)
+                    bar.tip.destroy();
             }
             if (this.linesTip)
                 this.linesTip.destroy();
@@ -203,11 +204,11 @@ var Picasso;
                     continue;
                 bar.columns.push(k);
             }
-            for (var i in bar.data) {
-                var d = bar.data[i];
+            for (var _i = 0, _a = bar.data; _i < _a.length; _i++) {
+                var d = _a[_i];
                 var t = 0;
-                for (var _i = 0, _a = bar.columns; _i < _a.length; _i++) {
-                    var c = _a[_i];
+                for (var _b = 0, _c = bar.columns; _b < _c.length; _b++) {
+                    var c = _c[_b];
                     t += d[c];
                 }
                 d.total = t;
@@ -229,12 +230,12 @@ var Picasso;
                         throw new Error("The lines provided contained both Date and not dates for its keys. The keys should either all be Dates, or none.");
                 }, this);
             }, this);
-            if (timescaled && this.bars.length > 0)
-                throw new Error("The lines provided all contained Dates for its keys, but bars were also provided. Please don't use Dates as keys on your line charts when using bars as well.");
             this.bars.forEach(function (b) {
                 b.data.forEach(function (d) {
                     if (d.key instanceof Date)
-                        throw new Error("The bar chart contained Dates as keys, which is not supported.");
+                        timescaled = true;
+                    if (timescaled && !(d.key instanceof Date))
+                        throw new Error("The bars provided contained both Date and not dates for its keys. The keys should either all be Dates, or none.");
                 }, this);
             }, this);
             this.svg.append("g").append("rect")
@@ -243,7 +244,7 @@ var Picasso;
                 .attr("width", this.width + this.options.marginLeft + this.options.marginRight)
                 .attr("transform", this.translate(-this.options.marginLeft, -this.options.xAxisMargin));
             var x;
-            var xBand = d3.scaleBand().range([0, this.width]);
+            var xBand = d3.scaleBand().range([0, this.width]).padding(0.1);
             if (timescaled)
                 x = d3.scaleTime().range([0, this.width]);
             else
@@ -253,71 +254,87 @@ var Picasso;
                 .x(function (d) { return x(d.key); })
                 .y(function (d) { return y(d.value); })
                 .curve(d3.curveCardinal.tension(1));
-            var minValue = +Infinity;
-            var maxValue = -Infinity;
             this.lines.forEach(function (l) {
                 l.data.forEach(function (d) {
                     d.value = +d.value;
-                    minValue = this.min(minValue, d.value);
-                    maxValue = this.max(maxValue, d.value);
                 }, this);
             }, this);
-            if (this.options.min != null)
-                minValue = this.options.min;
-            if (this.options.max != null)
-                maxValue = this.options.max;
+            var minValue = +Infinity;
+            var maxValue = -Infinity;
             var keys = [];
             var keysRaw = [];
+            var nbBars = 0;
             if (this.bars.length > 0) {
-                for (var i in this.bars) {
-                    for (var j in this.bars[i].data) {
-                        if (keys.indexOf(this.bars[i].data[j].key) < 0) {
-                            keys.push(this.bars[i].data[j].key);
-                            keysRaw.push(this.bars[i].data[j].key);
+                for (var _i = 0, _a = this.bars; _i < _a.length; _i++) {
+                    var bar = _a[_i];
+                    for (var _b = 0, _c = bar.data; _b < _c.length; _b++) {
+                        var bardata = _c[_b];
+                        if (keys.indexOf(bardata.key) < 0) {
+                            keys.push(bardata.key);
+                            keysRaw.push(bardata.key);
                         }
-                        maxValue = this.max(this.bars[i].data[j].total, maxValue);
+                        maxValue = this.max(bardata.total, maxValue);
+                        minValue = this.min(bardata.total, minValue);
+                        nbBars++;
                     }
                 }
             }
             if (this.lines.length > 0) {
-                for (var i in this.lines) {
-                    for (var j in this.lines[i].data) {
-                        if (this.lines[i].data[j].key instanceof Date) {
-                            if (keys.indexOf(this.lines[i].data[j].key.toString()) < 0) {
-                                keys.push(this.lines[i].data[j].key.toString());
-                                keysRaw.push(this.lines[i].data[j].key);
+                for (var _d = 0, _e = this.lines; _d < _e.length; _d++) {
+                    var line = _e[_d];
+                    for (var _f = 0, _g = line.data; _f < _g.length; _f++) {
+                        var linedata = _g[_f];
+                        if (linedata.key instanceof Date) {
+                            if (keys.indexOf(linedata.key.toString()) < 0) {
+                                keys.push(linedata.key.toString());
+                                keysRaw.push(linedata.key);
                             }
                         }
                         else {
-                            if (keys.indexOf(this.lines[i].data[j].key) < 0) {
-                                keys.push(this.lines[i].data[j].key);
-                                keysRaw.push(this.lines[i].data[j].key);
+                            if (keys.indexOf(linedata.key) < 0) {
+                                keys.push(linedata.key);
+                                keysRaw.push(linedata.key);
                             }
                         }
-                        maxValue = this.max(this.lines[i].data[j].value, maxValue);
+                        maxValue = this.max(linedata.value, maxValue);
+                        minValue = this.min(linedata.value, minValue);
                     }
                 }
             }
+            minValue -= minValue * 0.1;
+            maxValue += maxValue * 0.1;
+            if (this.options.min != null)
+                minValue = this.options.min;
+            if (this.options.max != null)
+                maxValue = this.options.max;
             xBand.domain(keys);
-            if (this.bars.length > 0)
+            if (nbBars == 1)
                 minValue = 0;
             if (timescaled) {
                 keysRaw.sort(function (a, b) {
                     return a.getTime() - b.getTime();
                 });
                 keys = [];
-                for (var i in keysRaw)
-                    keys.push(keysRaw[i].toString());
+                for (var _h = 0, keysRaw_1 = keysRaw; _h < keysRaw_1.length; _h++) {
+                    var keyraw = keysRaw_1[_h];
+                    keys.push(keyraw.toString());
+                }
                 x.domain(d3.extent(keysRaw, function (d) { return d; }));
             }
             else
                 x.domain(keys);
             y.domain([minValue, maxValue]).nice();
             var xbar;
-            if (this.bars.length > 0)
+            if (this.bars.length > 0) {
+                var bd = 10;
+                if (!timescaled)
+                    bd = x.bandwidth();
+                else
+                    bd = xBand.bandwidth();
                 xbar = d3.scaleBand().padding(0.05)
                     .domain(this.bars.map(function (d, id) { return id; }))
-                    .rangeRound([0, x.bandwidth()]);
+                    .rangeRound([0, bd]);
+            }
             this.bars.forEach(function (b, id) {
                 var z = d3.scaleOrdinal().range(b.colors).domain(b.columns);
                 this.svg.append("g").selectAll(".bar-group")
@@ -331,9 +348,10 @@ var Picasso;
                     .data(function (d) { return d; })
                     .enter().append("rect")
                     .attr("class", "bar")
-                    .attr("x", function (d) { return x(d.data.key) + xbar(id); })
+                    .attr("x", function (d) { var tmp = x(d.data.key); if (timescaled)
+                    tmp = xBand(d.data.key); return tmp + xbar(id); })
                     .attr("y", function (d) { return y(d[1]); })
-                    .attr("height", function (d) { return this.max(1, y(d[0]) - y(d[1])); }.bind(this))
+                    .attr("height", function (d) { return this.max(1, y(minValue) - y(d[1])); }.bind(this))
                     .attr("width", xbar.bandwidth())
                     .attr("fill", function (d) {
                     if (d.data.color && this.isFunction(d.data.color)) {
@@ -359,9 +377,10 @@ var Picasso;
                     drawnLine.attr("style", "stroke: " + l.color);
                 }
                 else if (l.colors) {
-                    for (var i in l.colors) {
-                        if (l.colors[i].value) {
-                            l.colors[i].offset = Math.floor(l.colors[i].value / maxValue * 100) + "%";
+                    for (var _i = 0, _a = l.colors; _i < _a.length; _i++) {
+                        var color = _a[_i];
+                        if (color.value) {
+                            color.offset = Math.floor(color.value / maxValue * 100) + "%";
                         }
                     }
                     var id = Math.floor(Math.random() * 100000);
@@ -446,7 +465,8 @@ var Picasso;
                     .data(b.data)
                     .enter().append("rect")
                     .attr("class", cl)
-                    .attr("x", function (d) { return x(d.key) + xbar(id); })
+                    .attr("x", function (d) { var tmp = x(d.key); if (timescaled)
+                    tmp = xBand(d.key); return tmp + xbar(id); })
                     .attr("y", function (d) { return y(maxValue); })
                     .attr("height", function (d) { return y(0) - y(maxValue); })
                     .attr("width", xbar.bandwidth())

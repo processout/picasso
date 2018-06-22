@@ -83,6 +83,7 @@
 
 <div style="height: 8em;"></div>
 <svg class="chart line-chart" id="bar-chart" width="600" height="300"></svg>
+<svg class="chart line-chart" id="bar-chart-timeseries" width="600" height="300"></svg>
 <svg class="chart line-chart" id="bar-line-chart" width="600" height="300"></svg>
 <svg class="chart line-chart" id="timeseries-chart" width="600" height="300"></svg>
 <svg class="chart line-chart" id="timeseries-chart-percentage" width="600" height="300"></svg>
@@ -242,7 +243,7 @@ graph.addBar({
         "key": "Apparently we need a final one on a third line maybe?",
         "First": 40
     }],
-    tip: function(d) { return d.total + " for " + d.key + " (bar 2)"; },
+    tip: function(d) { return d.total + " for " + d.key + " (bar 3)"; },
     onclick: function(d) { console.log(d); }
 });
 graph.draw();
@@ -270,6 +271,52 @@ graph.addBar({
     }],
     colors: ["green"],
     tip: function(d) { return d.total + " for " + d.key + " (bar 2)"; },
+    onclick: function(d) { console.log(d); }
+});
+graph.draw();
+
+// Bar chart timeseries
+var graph = new Picasso.BarLineChart("#bar-chart-timeseries", {
+    yAxisFormatter: function(d) {
+        return "$"+d;
+    }
+});
+graph.addBar({
+    data: [{
+        "key": new Date(2016, 1, 1),
+        "First": 20,
+    }, {
+        "key": new Date(2017, 1, 1),
+        color: "blue",
+        "First": 15
+    }, {
+        "key": new Date(2018, 1, 1),
+        "First": 30
+    }, {
+        "key": new Date(2019, 1, 1),
+        "First": 30
+    }],
+    colors: ["green"],
+    tip: function(d) { return d.total + " for " + d.key + " (bar 2)"; },
+    onclick: function(d) { console.log(d); }
+});
+graph.addBar({
+    data: [{
+        "key": new Date(2016, 1, 1),
+        "First": 10,
+    }, {
+        "key": new Date(2017, 1, 1),
+        color: "blue",
+        "First": 45
+    }, {
+        "key": new Date(2018, 1, 1),
+        "First": 30
+    }, {
+        "key": new Date(2019, 1, 1),
+        "First": 30
+    }],
+    colors: ["green"],
+    tip: function(d) { return d.total + " for " + d.key + " (bar 3)"; },
     onclick: function(d) { console.log(d); }
 });
 graph.draw();
