@@ -69,9 +69,9 @@ namespace Picasso {
          */
         public cleanupTip(): void {
             super.cleanupTip();
-            for (var i in this.bars) {
-                if (this.bars[i].tip)
-                    this.bars[i].tip.destroy();
+            for (var bar of this.bars) {
+                if (bar.tip)
+                    bar.tip.destroy();
             }
             if (this.linesTip)
                 this.linesTip.destroy();
@@ -141,8 +141,7 @@ namespace Picasso {
                     bar.columns.push(k);
             }
 
-            for (var i in bar.data) {
-                let d = bar.data[i];
+            for (var d of bar.data) {
                 let t = 0;
                 for (var c of bar.columns) {
                     t += d[c];
@@ -226,34 +225,34 @@ namespace Picasso {
             var keysRaw: Array<any> = [];
             var nbBars              = 0;
             if (this.bars.length > 0) {
-                for (var i in this.bars) {
-                    for (var j in this.bars[i].data) {
-                        if (keys.indexOf(this.bars[i].data[j].key) < 0) {
-                            keys.push(this.bars[i].data[j].key);
-                            keysRaw.push(this.bars[i].data[j].key);
+                for (var bar of this.bars) {
+                    for (var bardata of bar.data) {
+                        if (keys.indexOf(bardata.key) < 0) {
+                            keys.push(bardata.key);
+                            keysRaw.push(bardata.key);
                         }
-                        maxValue = this.max(this.bars[i].data[j].total, maxValue);
-                        minValue = this.min(this.bars[i].data[j].total, minValue);
+                        maxValue = this.max(bardata.total, maxValue);
+                        minValue = this.min(bardata.total, minValue);
                         nbBars++;
                     }
                 }
             }
             if (this.lines.length > 0) {
-                for (var i in this.lines) {
-                    for (var j in this.lines[i].data) {
-                        if (this.lines[i].data[j].key instanceof Date) {
-                            if (keys.indexOf(this.lines[i].data[j].key.toString()) < 0) {
-                                keys.push(this.lines[i].data[j].key.toString());
-                                keysRaw.push(this.lines[i].data[j].key);
+                for (var line of this.lines) {
+                    for (var linedata of line.data) {
+                        if (linedata.key instanceof Date) {
+                            if (keys.indexOf(linedata.key.toString()) < 0) {
+                                keys.push(linedata.key.toString());
+                                keysRaw.push(linedata.key);
                             }
                         } else {
-                            if (keys.indexOf(this.lines[i].data[j].key) < 0) {
-                                keys.push(this.lines[i].data[j].key);
-                                keysRaw.push(this.lines[i].data[j].key);
+                            if (keys.indexOf(linedata.key) < 0) {
+                                keys.push(linedata.key);
+                                keysRaw.push(linedata.key);
                             }
                         }
-                        maxValue = this.max(this.lines[i].data[j].value, maxValue);
-                        minValue = this.min(this.lines[i].data[j].value, minValue);
+                        maxValue = this.max(linedata.value, maxValue);
+                        minValue = this.min(linedata.value, minValue);
                     }
                 }
             }
@@ -275,7 +274,7 @@ namespace Picasso {
                     return a.getTime() - b.getTime();
                 });
                 keys = []; // Reset the keys
-                for (var i in keysRaw) keys.push(keysRaw[i].toString());
+                for (var keyraw of keysRaw) keys.push(keyraw.toString());
                 x.domain(d3.extent(keysRaw, function(d) { return d; }));
             } else
                 x.domain(keys);
@@ -340,10 +339,10 @@ namespace Picasso {
                     drawnLine.attr("style", `stroke: ${l.color}`);
                 } else if (l.colors) {
                     // Correctly format our colors
-                    for (var i in l.colors) {
-                        if (l.colors[i].value) {
-                            l.colors[i].offset = Math.floor(
-                                l.colors[i].value / maxValue * 100) + "%";
+                    for (var color of l.colors) {
+                        if (color.value) {
+                            color.offset = Math.floor(
+                                color.value / maxValue * 100) + "%";
                         }
                     }
 

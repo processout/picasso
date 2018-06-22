@@ -162,9 +162,10 @@ var Picasso;
         }
         BarLineChart.prototype.cleanupTip = function () {
             _super.prototype.cleanupTip.call(this);
-            for (var i in this.bars) {
-                if (this.bars[i].tip)
-                    this.bars[i].tip.destroy();
+            for (var _i = 0, _a = this.bars; _i < _a.length; _i++) {
+                var bar = _a[_i];
+                if (bar.tip)
+                    bar.tip.destroy();
             }
             if (this.linesTip)
                 this.linesTip.destroy();
@@ -203,11 +204,11 @@ var Picasso;
                     continue;
                 bar.columns.push(k);
             }
-            for (var i in bar.data) {
-                var d = bar.data[i];
+            for (var _i = 0, _a = bar.data; _i < _a.length; _i++) {
+                var d = _a[_i];
                 var t = 0;
-                for (var _i = 0, _a = bar.columns; _i < _a.length; _i++) {
-                    var c = _a[_i];
+                for (var _b = 0, _c = bar.columns; _b < _c.length; _b++) {
+                    var c = _c[_b];
                     t += d[c];
                 }
                 d.total = t;
@@ -264,35 +265,39 @@ var Picasso;
             var keysRaw = [];
             var nbBars = 0;
             if (this.bars.length > 0) {
-                for (var i in this.bars) {
-                    for (var j in this.bars[i].data) {
-                        if (keys.indexOf(this.bars[i].data[j].key) < 0) {
-                            keys.push(this.bars[i].data[j].key);
-                            keysRaw.push(this.bars[i].data[j].key);
+                for (var _i = 0, _a = this.bars; _i < _a.length; _i++) {
+                    var bar = _a[_i];
+                    for (var _b = 0, _c = bar.data; _b < _c.length; _b++) {
+                        var bardata = _c[_b];
+                        if (keys.indexOf(bardata.key) < 0) {
+                            keys.push(bardata.key);
+                            keysRaw.push(bardata.key);
                         }
-                        maxValue = this.max(this.bars[i].data[j].total, maxValue);
-                        minValue = this.min(this.bars[i].data[j].total, minValue);
+                        maxValue = this.max(bardata.total, maxValue);
+                        minValue = this.min(bardata.total, minValue);
                         nbBars++;
                     }
                 }
             }
             if (this.lines.length > 0) {
-                for (var i in this.lines) {
-                    for (var j in this.lines[i].data) {
-                        if (this.lines[i].data[j].key instanceof Date) {
-                            if (keys.indexOf(this.lines[i].data[j].key.toString()) < 0) {
-                                keys.push(this.lines[i].data[j].key.toString());
-                                keysRaw.push(this.lines[i].data[j].key);
+                for (var _d = 0, _e = this.lines; _d < _e.length; _d++) {
+                    var line = _e[_d];
+                    for (var _f = 0, _g = line.data; _f < _g.length; _f++) {
+                        var linedata = _g[_f];
+                        if (linedata.key instanceof Date) {
+                            if (keys.indexOf(linedata.key.toString()) < 0) {
+                                keys.push(linedata.key.toString());
+                                keysRaw.push(linedata.key);
                             }
                         }
                         else {
-                            if (keys.indexOf(this.lines[i].data[j].key) < 0) {
-                                keys.push(this.lines[i].data[j].key);
-                                keysRaw.push(this.lines[i].data[j].key);
+                            if (keys.indexOf(linedata.key) < 0) {
+                                keys.push(linedata.key);
+                                keysRaw.push(linedata.key);
                             }
                         }
-                        maxValue = this.max(this.lines[i].data[j].value, maxValue);
-                        minValue = this.min(this.lines[i].data[j].value, minValue);
+                        maxValue = this.max(linedata.value, maxValue);
+                        minValue = this.min(linedata.value, minValue);
                     }
                 }
             }
@@ -310,8 +315,10 @@ var Picasso;
                     return a.getTime() - b.getTime();
                 });
                 keys = [];
-                for (var i in keysRaw)
-                    keys.push(keysRaw[i].toString());
+                for (var _h = 0, keysRaw_1 = keysRaw; _h < keysRaw_1.length; _h++) {
+                    var keyraw = keysRaw_1[_h];
+                    keys.push(keyraw.toString());
+                }
                 x.domain(d3.extent(keysRaw, function (d) { return d; }));
             }
             else
@@ -370,9 +377,10 @@ var Picasso;
                     drawnLine.attr("style", "stroke: " + l.color);
                 }
                 else if (l.colors) {
-                    for (var i in l.colors) {
-                        if (l.colors[i].value) {
-                            l.colors[i].offset = Math.floor(l.colors[i].value / maxValue * 100) + "%";
+                    for (var _i = 0, _a = l.colors; _i < _a.length; _i++) {
+                        var color = _a[_i];
+                        if (color.value) {
+                            color.offset = Math.floor(color.value / maxValue * 100) + "%";
                         }
                     }
                     var id = Math.floor(Math.random() * 100000);
