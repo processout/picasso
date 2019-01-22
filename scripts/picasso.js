@@ -1,7 +1,10 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -135,6 +138,12 @@ var Picasso;
         return BarData;
     }());
     Picasso.BarData = BarData;
+    var PieData = (function () {
+        function PieData() {
+        }
+        return PieData;
+    }());
+    Picasso.PieData = PieData;
 })(Picasso || (Picasso = {}));
 var Picasso;
 (function (Picasso) {
@@ -503,6 +512,71 @@ var Picasso;
 })(Picasso || (Picasso = {}));
 var Picasso;
 (function (Picasso) {
+    var PieChart = (function (_super) {
+        __extends(PieChart, _super);
+        function PieChart(el, options) {
+            var _this = _super.call(this, el, options) || this;
+            _this.portions = [];
+            return _this;
+        }
+        PieChart.prototype.addPortion = function (portion) {
+            this.portions.push(portion);
+        };
+        PieChart.prototype.cleanupTip = function () {
+            _super.prototype.cleanupTip.call(this);
+        };
+        PieChart.prototype.draw = function () {
+            var width = this.width;
+            var height = this.height;
+            var radius = Math.min(width, height) / 2;
+            var data = this.portions;
+            var svg = this.svg
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", "translate(" + width / 2 + ", " + height / 2 + ")");
+            var colors = [];
+            for (var _i = 0, _a = this.portions; _i < _a.length; _i++) {
+                var portion = _a[_i];
+                colors.push(portion.color);
+            }
+            var color = d3.scaleOrdinal(colors);
+            var pie = d3.pie()
+                .value(function (d) { return d.data; })
+                .sort(null);
+            var arc = d3.arc()
+                .innerRadius(0)
+                .outerRadius(radius);
+            var path = svg.selectAll("path")
+                .data(pie(data));
+            var t = this;
+            path.enter().append("path")
+                .attr("fill", function (d, i) { return color(i); })
+                .attr("d", arc)
+                .on("mouseover", function (d) {
+                if (this.options.tip)
+                    this.options.tip.offset(function () {
+                        return [0, 0];
+                    }).show(d.data);
+            }.bind(this))
+                .on("mouseout", function (d) { if (this.options.tip)
+                this.options.tip.hide(d.data); }.bind(this))
+                .on("click", function (d) {
+                if (this.options.onclick)
+                    this.options.onclick(d.data);
+            }.bind(this))
+                .attr("class", this["class"]("pie-portion"))
+                .attr("stroke", "white")
+                .attr("stroke-width", "2px")
+                .each(function (d) { this._current = d; });
+        };
+        return PieChart;
+    }(Picasso.Chart));
+    Picasso.PieChart = PieChart;
+})(Picasso || (Picasso = {}));
+var Picasso;
+(function (Picasso) {
     var Country = (function () {
         function Country() {
         }
@@ -569,6 +643,14 @@ var Picasso;
                 if (!this.options.tip)
                     return;
                 this.options.tip.hide(country);
+            }.bind(this))
+                .on("click", function (d) {
+                var country = this.findCountry(d.id);
+                if (!country)
+                    return;
+                if (!this.options.onclick)
+                    return;
+                this.options.onclick(country);
             }.bind(this));
         };
         return MapChart;
@@ -758,4 +840,3 @@ var Picasso;
             ] };
     })(Data = Picasso.Data || (Picasso.Data = {}));
 })(Picasso || (Picasso = {}));
-//# sourceMappingURL=picasso.js.map

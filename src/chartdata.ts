@@ -68,4 +68,10 @@ namespace Picasso {
          */
         public total: number;
     }
+
+    export class PieData {
+        public key: string;
+        public color: string;
+        public data: number;
+    }
 }

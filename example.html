@@ -90,6 +90,8 @@
 <svg class="chart line-chart no-background" id="line-gradient-chart" width="600" height="300"></svg>
 <svg class="chart map-chart" id="map-chart" width="600" height="300"></svg>
 
+<svg class="chart pie-chart" id="pie-chart" width="600" height="300"></svg>
+
 <!-- load the d3.js library -->
 <script src="scripts/d3.min.js"></script>
 <script src="scripts/d3-tip.min.js"></script>
@@ -432,6 +434,31 @@ timeseries.addLine({
     }],
 });
 timeseries.draw();
+
+// Pie chart
+var piechart = new Picasso.PieChart("#pie-chart", {
+    tip: function(d) {
+        var t = d.key;
+        return t;
+    },
+    onclick: function(d) { console.log(d); }
+});
+piechart.addPortion({
+    key: "FR",
+    data: 10,
+    color: "red"
+});
+piechart.addPortion({
+    key: "US",
+    data: 75,
+    color: "green"
+});
+piechart.addPortion({
+    key: "GB",
+    data: 5,
+    color: "blue"
+});
+piechart.draw();
 </script>
 </body>
 </html>

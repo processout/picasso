@@ -120,6 +120,12 @@ namespace Picasso {
                 if (!country) return;
                 if (!this.options.tip) return;
                 this.options.tip.hide(country);
+            }.bind(this))
+            .on("click", function(d){
+                var country = this.findCountry(d.id);
+                if (!country) return;
+                if (!this.options.onclick) return;
+                this.options.onclick(country);
             }.bind(this));
         }
     }
