@@ -443,17 +443,17 @@ var piechart = new Picasso.PieChart("#pie-chart", {
     },
     onclick: function(d) { console.log(d); }
 });
-piechart.addPortion({
+piechart.addSlice({
     key: "FR",
     data: 10,
     color: "red"
 });
-piechart.addPortion({
+piechart.addSlice({
     key: "US",
     data: 75,
     color: "green"
 });
-piechart.addPortion({
+piechart.addSlice({
     key: "GB",
     data: 5,
     color: "blue"

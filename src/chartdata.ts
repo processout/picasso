@@ -69,7 +69,7 @@ namespace Picasso {
         public total: number;
     }
 
-    export class PieData {
+    export class PieSlice {
         public key: string;
         public color: string;
         public data: number;

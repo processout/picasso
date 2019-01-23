@@ -96,6 +96,10 @@ namespace Picasso {
          * @property {any?}
          */
         public linesTip?: any;
+        /**
+         * Onclick to be triggered when the user clicks on the chart
+         */
+        public onclick?: any;
     }
 
     /**

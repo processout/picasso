@@ -9,7 +9,11 @@ namespace Picasso {
      * MapChart is the class handling the drawings of a map chart
      */
     export class PieChart extends Chart {
-        protected portions: PieData[] = [];
+        /**
+         * slices contains the slices of the pie chart
+         * @property {PieSlice[]}
+         */
+        protected slices: PieSlice[] = [];
 
         /**
          * Constructor
@@ -20,8 +24,12 @@ namespace Picasso {
             super(el, options);
         }
 
-        public addPortion(portion: PieData): void {
-            this.portions.push(portion);
+        /**
+         * addSlice adds a slice to the pie chart
+         * @param slice PieSlice
+         */
+        public addSlice(slice: PieSlice): void {
+            this.slices.push(slice);
         }
 
         /**
@@ -41,7 +49,7 @@ namespace Picasso {
             const height = this.height;
             const radius = Math.min(width, height) / 2;
 
-            var data = this.portions;
+            var data = this.slices;
 
             const svg = this.svg
                 .append("svg")
@@ -52,14 +60,14 @@ namespace Picasso {
 
             // Compute the colors of all the parts
             var colors = [];
-            for (var portion of this.portions)
-                colors.push(portion.color);
+            for (var slice of data)
+                colors.push(slice.color);
 
             const color = d3.scaleOrdinal(colors);
 
             const pie = d3.pie()
-                .value(function(d) { return d.data; })
-                .sort(null);
+                .sort(null)
+                .value(function(d) { return d.data; });
 
             const arc = d3.arc()
                 .innerRadius(0) // Set to positive number for donut
@@ -68,23 +76,50 @@ namespace Picasso {
             const path = svg.selectAll("path")
                 .data(pie(data));
 
-            // We need to store the context here as we won't bind the functions
-            // to it (we need the event'ed elements in the callbacks)
-            var t = this;
-            path.enter().append("path")
+            var arcs = path.enter().append("g");
+
+            arcs.append("path")
                 .attr("fill", function(d, i) { return color(i); })
                 .attr("d", arc)
-                .on("mouseover", function(d) { if (this.options.tip) this.options.tip.offset(function() {
-                    return [0, 0];
-                  }).show(d.data); }.bind(this))
-                .on("mouseout",  function(d) { if (this.options.tip) this.options.tip.hide(d.data); }.bind(this))
-                .on("click", function(d) {
-                    if (this.options.onclick) this.options.onclick(d.data);
+                .attr("class", this.class("pie-slice"));
+
+            // Add labels
+            const arcLabel = d3.arc()
+                .innerRadius(radius*0.7)
+                .outerRadius(radius*0.7);
+            arcs.append("text")
+                .attr("transform", function(d) {
+                    return "translate(" + arcLabel.centroid(d) + ")";
+                })
+            .attr("text-anchor", "middle")
+            .text(function(d) { return d.data.data; })
+            .attr("class", this.class("pie-label"));
+
+            // Add tooltips, if any
+            if (this.options.tip) {
+                var t = this;
+                arcs.selectAll("path,text").
+                    on("mouseover", function(d) {
+                        if (this.nodeName != "text") {
+                            // We want to find the text element for the tooltip
+                            // to be properly placed
+                            this.parentElement.querySelector("text")
+                                .dispatchEvent(new Event("mouseover"));
+                            return;
+                        }
+                        t.options.tip.show(d.data);
+                    })
+                    .on("mouseout", function(d) {
+                        t.options.tip.hide(d.data);
+                    }.bind(this));
+            }
+
+            // Add onclick, if any
+            if (this.options.onclick) {
+                arcs.on("click", function(d) {
+                    this.options.onclick(d.data);
                 }.bind(this))
-                .attr("class", this.class("pie-portion"))
-                .attr("stroke", "white")
-                .attr("stroke-width", "2px")
-                .each(function(d) { this._current = d; });
+            }
         }
     }
 }
