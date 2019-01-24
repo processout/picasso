@@ -10,6 +10,13 @@ namespace Picasso {
      */
     export class PieChart extends Chart {
         /**
+         * labelMinSlice is the label minimum slice size (between 0 and 1) 
+         * for the label to be shown
+         * @property {number}
+         */
+        protected labelMinSlice = 0.05;
+
+        /**
          * slices contains the slices of the pie chart
          * @property {PieSlice[]}
          */
@@ -68,10 +75,13 @@ namespace Picasso {
                 .append("g")
                     .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
-            // Compute the colors of all the parts
+            // Compute the colors and total of all the slices
             var colors = [];
-            for (var slice of data)
+            let total = 0;
+            for (var slice of data) {
                 colors.push(slice.color);
+                total += slice.data;
+            }
 
             const color = d3.scaleOrdinal(colors);
 
@@ -102,7 +112,11 @@ namespace Picasso {
                     return "translate(" + arcLabel.centroid(d) + ")";
                 })
             .attr("text-anchor", "middle")
-            .text(function(d) { return d.data.data; })
+            .text(function(d) {
+                if (d.data.data / total > this.labelMinSlice)
+                    return d.data.data;
+                return "";
+            })
             .attr("class", this.class("pie-label"));
 
             // Add tooltips, if any

@@ -527,6 +527,7 @@ var Picasso;
         __extends(PieChart, _super);
         function PieChart(el, options) {
             var _this = _super.call(this, el, options) || this;
+            _this.labelMinSlice = 0.05;
             _this.slices = [];
             return _this;
         }
@@ -551,9 +552,11 @@ var Picasso;
                 .append("g")
                 .attr("transform", "translate(" + width / 2 + ", " + height / 2 + ")");
             var colors = [];
+            var total = 0;
             for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
                 var slice = data_1[_i];
                 colors.push(slice.color);
+                total += slice.data;
             }
             var color = d3.scaleOrdinal(colors);
             var pie = d3.pie()
@@ -577,7 +580,11 @@ var Picasso;
                 return "translate(" + arcLabel.centroid(d) + ")";
             })
                 .attr("text-anchor", "middle")
-                .text(function (d) { return d.data.data; })
+                .text(function (d) {
+                if (d.data.data / total > this.labelMinSlice)
+                    return d.data.data;
+                return "";
+            })
                 .attr("class", this["class"]("pie-label"));
             if (this.options.tooltip) {
                 var t = this;
@@ -872,4 +879,3 @@ var Picasso;
             ] };
     })(Data = Picasso.Data || (Picasso.Data = {}));
 })(Picasso || (Picasso = {}));
-//# sourceMappingURL=picasso.js.map
