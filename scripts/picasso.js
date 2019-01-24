@@ -231,6 +231,7 @@ var Picasso;
             if (this.lines.length <= 0 && this.bars.length <= 0)
                 return;
             var timescaled = false;
+            var stackedBars = false;
             this.lines.forEach(function (l) {
                 l.data.forEach(function (d) {
                     if (d.key instanceof Date)
@@ -240,10 +241,11 @@ var Picasso;
                 }, this);
             }, this);
             this.bars.forEach(function (b) {
+                stackedBars = stackedBars || b.columns.length > 1;
                 b.data.forEach(function (d) {
                     if (d.key instanceof Date)
                         timescaled = true;
-                    if (timescaled && !(d.key instanceof Date))
+                    else if (timescaled)
                         throw new Error("The bars provided contained both Date and not dates for its keys. The keys should either all be Dates, or none.");
                 }, this);
             }, this);
@@ -319,6 +321,8 @@ var Picasso;
             xBand.domain(keys);
             if (nbBars == 1)
                 minValue = 0;
+            if (stackedBars)
+                minValue = 0;
             if (timescaled) {
                 keysRaw.sort(function (a, b) {
                     return a.getTime() - b.getTime();
@@ -360,7 +364,8 @@ var Picasso;
                     .attr("x", function (d) { var tmp = x(d.data.key); if (timescaled)
                     tmp = xBand(d.data.key); return tmp + xbar(id); })
                     .attr("y", function (d) { return y(d[1]); })
-                    .attr("height", function (d) { return this.max(1, y(minValue) - y(d[1])); }.bind(this))
+                    .attr("height", function (d) { var y0 = y(minValue); if (stackedBars)
+                    y0 = y(d[0]); return this.max(1, y0 - y(d[1])); }.bind(this))
                     .attr("width", xbar.bandwidth())
                     .attr("fill", function (d) {
                     if (d.data.color && this.isFunction(d.data.color)) {
@@ -861,4 +866,3 @@ var Picasso;
             ] };
     })(Data = Picasso.Data || (Picasso.Data = {}));
 })(Picasso || (Picasso = {}));
-//# sourceMappingURL=picasso.js.map

@@ -215,16 +215,20 @@ graph.addBar({
     data: [{
         "key": "asdkjnasdnasdjinasidnasijndiasdnaisjndiasnd",
         "First": 20,
+        "Second": 5
     }, {
         "key": "Another quite long label",
         color: "blue",
-        "First": 5
+        "First": 5,
+        "Second": 5
     }, {
         "key": "One more for the C label",
-        "First": 3
+        "First": 3,
+        "Second": 5
     }, {
         "key": "Apparently we need a final one on a third line maybe?",
-        "First": 30
+        "First": 30,
+        "Second": 5
     }],
     colors: ["green"],
     tip: function(d) { return d.total + " for " + d.key + " (bar 2)"; },
@@ -234,16 +238,20 @@ graph.addBar({
     data: [{
         "key": "asdkjnasdnasdjinasidnasijndiasdnaisjndiasnd",
         "First": 5,
+        "Second": 5
     }, {
         "key": "Another quite long label",
         color: "blue",
-        "First": 10
+        "First": 10,
+        "Second": 5
     }, {
         "key": "One more for the C label",
-        "First": 2
+        "First": 2,
+        "Second": 5
     }, {
         "key": "Apparently we need a final one on a third line maybe?",
-        "First": 40
+        "First": 40,
+        "Second": 5
     }],
     tip: function(d) { return d.total + " for " + d.key + " (bar 3)"; },
     onclick: function(d) { console.log(d); }
@@ -287,38 +295,23 @@ graph.addBar({
     data: [{
         "key": new Date(2016, 1, 1),
         "First": 20,
+        "Second": 20,
     }, {
         "key": new Date(2017, 1, 1),
         color: "blue",
-        "First": 15
+        "First": 15,
+        "Second": 15
     }, {
         "key": new Date(2018, 1, 1),
-        "First": 30
+        "First": 30,
+        "Second": 30
     }, {
         "key": new Date(2019, 1, 1),
-        "First": 30
+        "First": 30,
+        "Second": 30
     }],
-    colors: ["green"],
+    colors: ["green", "orange"],
     tip: function(d) { return d.total + " for " + d.key + " (bar 2)"; },
-    onclick: function(d) { console.log(d); }
-});
-graph.addBar({
-    data: [{
-        "key": new Date(2016, 1, 1),
-        "First": 10,
-    }, {
-        "key": new Date(2017, 1, 1),
-        color: "blue",
-        "First": 45
-    }, {
-        "key": new Date(2018, 1, 1),
-        "First": 30
-    }, {
-        "key": new Date(2019, 1, 1),
-        "First": 30
-    }],
-    colors: ["green"],
-    tip: function(d) { return d.total + " for " + d.key + " (bar 3)"; },
     onclick: function(d) { console.log(d); }
 });
 graph.draw();

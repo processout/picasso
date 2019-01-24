@@ -168,8 +168,9 @@ namespace Picasso {
             if (this.lines.length <= 0 && this.bars.length <= 0)
                 return;
 
-            // Compute if the chart is going to be time scaled or not
+            // Compute if the chart is going to be time scaled or stacked bars
             var timescaled = false;
+            var stackedBars = false;
             this.lines.forEach(function(l: Line) {
                 l.data.forEach(function(d: LineData) {
                     if (d.key instanceof Date)
@@ -180,11 +181,12 @@ namespace Picasso {
                 }, this);
             }, this);
             this.bars.forEach(function(b: Bar) {
+                stackedBars = stackedBars || b.columns.length > 1;
+                
                 b.data.forEach(function(d: BarData) {
                     if (d.key instanceof Date)
-                    timescaled = true;
-
-                    if (timescaled && !(d.key instanceof Date))
+                        timescaled = true;
+                    else if (timescaled)
                         throw new Error("The bars provided contained both Date and not dates for its keys. The keys should either all be Dates, or none.");
                 }, this);
             }, this);
@@ -269,6 +271,11 @@ namespace Picasso {
             if (nbBars == 1)
                 minValue = 0;
 
+            // If we have stacked bar charts, we don't want to scale the charts
+            // either
+            if (stackedBars)
+                minValue = 0;
+
             if (timescaled) {
                 keysRaw.sort(function(a, b) {
                     return a.getTime() - b.getTime();
@@ -307,7 +314,7 @@ namespace Picasso {
                     .attr("class", "bar")
                     .attr("x", function(d) { var tmp = x(d.data.key); if (timescaled) tmp = xBand(d.data.key); return tmp + xbar(id); })
                     .attr("y", function(d) {  return y(d[1]); })
-                    .attr("height", function(d) { return this.max(1, y(minValue) - y(d[1])); }.bind(this))
+                    .attr("height", function(d) { let y0 = y(minValue); if (stackedBars) y0 = y(d[0]); return this.max(1, y0 - y(d[1])); }.bind(this))
                     .attr("width", xbar.bandwidth())
                     .attr("fill", function(d) {
                         if (d.data.color && this.isFunction(d.data.color)) {
