@@ -41,6 +41,14 @@ namespace Picasso {
         }
 
         /**
+         * reset removes all the chart slices
+         * @return {void}
+         */
+        public reset(): void {
+            this.slices = [];
+        }
+
+        /**
          * Draw draws the chart
          * @return {void}
          */

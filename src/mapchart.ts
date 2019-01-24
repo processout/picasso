@@ -69,6 +69,14 @@ namespace Picasso {
         }
 
         /**
+         * reset removes all the chart countries
+         * @return {void}
+         */
+        public reset(): void {
+            this.countries = [];
+        }
+
+        /**
          * Find a country in the ones submitted to the map by its 3 char ID
          * @param name {string}
          * @return {Country}

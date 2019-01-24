@@ -525,6 +525,9 @@ var Picasso;
         PieChart.prototype.cleanupTip = function () {
             _super.prototype.cleanupTip.call(this);
         };
+        PieChart.prototype.reset = function () {
+            this.slices = [];
+        };
         PieChart.prototype.draw = function () {
             var width = this.width;
             var height = this.height;
@@ -612,6 +615,9 @@ var Picasso;
             country.name = country.name || "";
             country.color = country.color || null;
             this.countries.push(country);
+        };
+        MapChart.prototype.reset = function () {
+            this.countries = [];
         };
         MapChart.prototype.findCountry = function (name) {
             for (var _i = 0, _a = this.countries; _i < _a.length; _i++) {
