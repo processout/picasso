@@ -13,7 +13,7 @@ namespace Picasso {
          * slices contains the slices of the pie chart
          * @property {PieSlice[]}
          */
-        protected slices: PieSlice[] = [];
+        protected slices: PieSlice[];
 
         /**
          * Constructor
@@ -22,6 +22,8 @@ namespace Picasso {
          */
         constructor(el: string, options: Options) {
             super(el, options);
+
+            this.slices = [];
         }
 
         /**
@@ -104,7 +106,7 @@ namespace Picasso {
             .attr("class", this.class("pie-label"));
 
             // Add tooltips, if any
-            if (this.options.tip) {
+            if (this.options.tooltip) {
                 var t = this;
                 arcs.selectAll("path,text").
                     on("mouseover", function(d) {
@@ -115,10 +117,10 @@ namespace Picasso {
                                 .dispatchEvent(new Event("mouseover"));
                             return;
                         }
-                        t.options.tip.show(d.data);
+                        t.options.tooltip.show(d.data);
                     })
                     .on("mouseout", function(d) {
-                        t.options.tip.hide(d.data);
+                        t.options.tooltip.hide(d.data);
                     }.bind(this));
             }
 

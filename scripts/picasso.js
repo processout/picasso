@@ -39,11 +39,13 @@ var Picasso;
             opt.yAxisTicks = (opt.yAxisTicks != null) ? opt.yAxisTicks : 5;
             opt.yAxisFormatter = opt.yAxisFormatter || function (d) { return d; };
             this.init(el, opt);
-            opt.tip = this.initTooltip(opt.tip);
+            opt.tooltip = this.initTooltip(opt.tip);
         }
         Chart.prototype.cleanupTip = function () {
-            if (this.options.tip)
-                this.options.tip.destroy();
+            if (this.options.tooltip) {
+                this.options.tooltip.destroy();
+                this.options.tooltip = this.initTooltip(this.options.tip);
+            }
         };
         Chart.prototype.resetSVG = function () {
             this.root.selectAll("*").remove();
@@ -166,18 +168,22 @@ var Picasso;
             _this.lines = [];
             _this.bars = [];
             if (options.linesTip)
-                _this.linesTip = _this.initTooltip(options.linesTip);
+                _this.linesTooltip = _this.initTooltip(options.linesTip);
             return _this;
         }
         BarLineChart.prototype.cleanupTip = function () {
             _super.prototype.cleanupTip.call(this);
             for (var _i = 0, _a = this.bars; _i < _a.length; _i++) {
                 var bar = _a[_i];
-                if (bar.tip)
-                    bar.tip.destroy();
+                if (bar.tip) {
+                    bar.tooltip.destroy();
+                    bar.tooltip = this.initTooltip(bar.tip);
+                }
             }
-            if (this.linesTip)
-                this.linesTip.destroy();
+            if (this.linesTip) {
+                this.linesTooltip.destroy();
+                this.linesTooltip = this.initTooltip(this.linesTip);
+            }
         };
         BarLineChart.prototype.reset = function () {
             this.resetLines();
@@ -206,7 +212,7 @@ var Picasso;
             }
             bar.name = bar.name || "";
             bar.colors = bar.colors || [];
-            bar.tip = this.initTooltip(bar.tip);
+            bar.tooltip = this.initTooltip(bar.tip);
             bar.columns = [];
             for (var k in bar.data[0]) {
                 if (k == "key" || k == "color" || k == "total" || (k != "" && k[0] == '_'))
@@ -444,12 +450,12 @@ var Picasso;
                             var val = _c[_b];
                             if (((val.key instanceof Date && val.key.toString() == d.toString())
                                 || val.key == d)
-                                && this.linesTip)
+                                && this.linesTooltip)
                                 vals.push(val);
                         }
                     }
-                    if (this.linesTip && vals.length > 0)
-                        this.linesTip.show.call(this, vals);
+                    if (this.linesTooltip && vals.length > 0)
+                        this.linesTooltip.show.call(this, vals);
                 }.bind(this))
                     .on("mouseout", function (d) {
                     var vals = [];
@@ -459,16 +465,16 @@ var Picasso;
                             var val = _c[_b];
                             if (((val.key instanceof Date && val.key.toString() == d.toString())
                                 || val.key == d)
-                                && this.linesTip)
+                                && this.linesTooltip)
                                 vals.push(val);
                         }
                     }
-                    if (this.linesTip && vals.length > 0)
-                        this.linesTip.hide.call(this, vals);
+                    if (this.linesTooltip && vals.length > 0)
+                        this.linesTooltip.hide.call(this, vals);
                 }.bind(this));
             }
             this.bars.forEach(function (b, id) {
-                if (!b.tip && !b.onclick)
+                if (!b.tooltip && !b.onclick)
                     return;
                 var cl = this["class"]("bar-collision");
                 if (b.onclick)
@@ -484,10 +490,10 @@ var Picasso;
                     .attr("y", function (d) { return y(maxValue); })
                     .attr("height", function (d) { return y(0) - y(maxValue); })
                     .attr("width", xbar.bandwidth())
-                    .on("mouseover", function (d) { if (b.tip)
-                    b.tip.show(d); }.bind(this))
-                    .on("mouseout", function (d) { if (b.tip)
-                    b.tip.hide(d); }.bind(this))
+                    .on("mouseover", function (d) { if (b.tooltip)
+                    b.tooltip.show(d); }.bind(this))
+                    .on("mouseout", function (d) { if (b.tooltip)
+                    b.tooltip.hide(d); }.bind(this))
                     .on("click", function (d) {
                     if (b.onclick)
                         b.onclick(d);
@@ -573,7 +579,7 @@ var Picasso;
                 .attr("text-anchor", "middle")
                 .text(function (d) { return d.data.data; })
                 .attr("class", this["class"]("pie-label"));
-            if (this.options.tip) {
+            if (this.options.tooltip) {
                 var t = this;
                 arcs.selectAll("path,text").
                     on("mouseover", function (d) {
@@ -582,10 +588,10 @@ var Picasso;
                             .dispatchEvent(new Event("mouseover"));
                         return;
                     }
-                    t.options.tip.show(d.data);
+                    t.options.tooltip.show(d.data);
                 })
                     .on("mouseout", function (d) {
-                    t.options.tip.hide(d.data);
+                    t.options.tooltip.hide(d.data);
                 }.bind(this));
             }
             if (this.options.onclick) {
@@ -658,17 +664,17 @@ var Picasso;
                 var country = this.findCountry(d.id);
                 if (!country)
                     return;
-                if (!this.options.tip)
+                if (!this.options.tooltip)
                     return;
-                this.options.tip.show(country);
+                this.options.tooltip.show(country);
             }.bind(this))
                 .on("mouseout", function (d) {
                 var country = this.findCountry(d.id);
                 if (!country)
                     return;
-                if (!this.options.tip)
+                if (!this.options.tooltip)
                     return;
-                this.options.tip.hide(country);
+                this.options.tooltip.hide(country);
             }.bind(this))
                 .on("click", function (d) {
                 var country = this.findCountry(d.id);
@@ -866,3 +872,4 @@ var Picasso;
             ] };
     })(Data = Picasso.Data || (Picasso.Data = {}));
 })(Picasso || (Picasso = {}));
+//# sourceMappingURL=picasso.js.map

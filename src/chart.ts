@@ -87,15 +87,17 @@ namespace Picasso {
         public yAxisFormatter: (d: any) => string;
         /**
          * Tooltip to be shown on the chart elements. Can only be used for
-         * MapChart charts
+         * MapChart and PieChart charts
          * @property {any?}
          */
-        public tip?: any;
+        public tip?: (d: any) => string;
+        public tooltip?: any;
         /**
          * Tooltip to be shown for lines chart.
          * @property {any?}
          */
-        public linesTip?: any;
+        public linesTip?: (d: any) => string;
+        public linesTooltip?: any;
         /**
          * Onclick to be triggered when the user clicks on the chart
          */
@@ -157,7 +159,7 @@ namespace Picasso {
 
             this.init(el, opt);
 
-            opt.tip = this.initTooltip(opt.tip);
+            opt.tooltip = this.initTooltip(opt.tip);
         }
 
         /**
@@ -165,8 +167,10 @@ namespace Picasso {
          * @return {void}
          */
         public cleanupTip(): void {
-            if (this.options.tip)
-                this.options.tip.destroy();
+            if (this.options.tooltip) {
+                this.options.tooltip.destroy();
+                this.options.tooltip = this.initTooltip(this.options.tip);
+            }
         }
 
         /**

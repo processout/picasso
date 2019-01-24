@@ -23,7 +23,8 @@ namespace Picasso {
      */
     export class Bar {
         public name: string;
-        public tip?: any;
+        public tip?: (d: any) => string;
+        public tooltip?: any;
         public onclick?: any;
         public data: BarData[];
         public columns: string[];
@@ -50,7 +51,8 @@ namespace Picasso {
          * linesTip contains the tip to be shown for lines drawn on the chart
          * @property {any?}
          */
-        protected linesTip?: any;
+        protected linesTip?: (d: any) => string;
+        protected linesTooltip?: any;
 
         /**
          * Constructor
@@ -60,7 +62,7 @@ namespace Picasso {
         constructor(el: string, options: Options) {
             super(el, options);
 
-            if (options.linesTip) this.linesTip = this.initTooltip(options.linesTip);
+            if (options.linesTip) this.linesTooltip = this.initTooltip(options.linesTip);
         }
 
         /**
@@ -70,11 +72,15 @@ namespace Picasso {
         public cleanupTip(): void {
             super.cleanupTip();
             for (var bar of this.bars) {
-                if (bar.tip)
-                    bar.tip.destroy();
+                if (bar.tip) {
+                    bar.tooltip.destroy();
+                    bar.tooltip = this.initTooltip(bar.tip);
+                }
             }
-            if (this.linesTip)
-                this.linesTip.destroy();
+            if (this.linesTip) {
+                this.linesTooltip.destroy();
+                this.linesTooltip = this.initTooltip(this.linesTip);
+            }
         }
 
         /**
@@ -131,7 +137,7 @@ namespace Picasso {
             }
             bar.name = bar.name || "";
             bar.colors = bar.colors || [];
-            bar.tip = this.initTooltip(bar.tip);
+            bar.tooltip = this.initTooltip(bar.tip);
             bar.columns = [];
             // Clean up columns
             for (var k in bar.data[0]) {
@@ -404,10 +410,10 @@ namespace Picasso {
                                 for (var val of line.data)
                                     if (((val.key instanceof Date && val.key.toString() == d.toString()) 
                                                 || val.key == d)
-                                            && this.linesTip)
+                                            && this.linesTooltip)
                                         vals.push(val);
-                                if (this.linesTip && vals.length > 0)
-                                    this.linesTip.show.call(this, vals);
+                                if (this.linesTooltip && vals.length > 0)
+                                    this.linesTooltip.show.call(this, vals);
                         }.bind(this))
                         .on("mouseout",  function(d) {
                             var vals: Array<any> = [];
@@ -415,16 +421,16 @@ namespace Picasso {
                                 for (var val of line.data)
                                     if (((val.key instanceof Date && val.key.toString() == d.toString()) 
                                                 || val.key == d)
-                                            && this.linesTip)
+                                            && this.linesTooltip)
                                         vals.push(val);
-                                if (this.linesTip && vals.length > 0)
-                                    this.linesTip.hide.call(this, vals);
+                                if (this.linesTooltip && vals.length > 0)
+                                    this.linesTooltip.hide.call(this, vals);
                         }.bind(this));
             }
 
             // And add the tooltip of the bars as well
             this.bars.forEach(function(b: Bar, id) {
-                if (!b.tip && !b.onclick)
+                if (!b.tooltip && !b.onclick)
                     return;
 
                 var cl = this.class("bar-collision");
@@ -441,8 +447,8 @@ namespace Picasso {
                     .attr("y", function(d) { return y(maxValue); })
                     .attr("height", function(d) { return y(0) - y(maxValue); })
                     .attr("width", xbar.bandwidth())
-                .on("mouseover", function(d) { if (b.tip) b.tip.show(d); }.bind(this))
-                .on("mouseout",  function(d) { if (b.tip) b.tip.hide(d); }.bind(this))
+                .on("mouseover", function(d) { if (b.tooltip) b.tooltip.show(d); }.bind(this))
+                .on("mouseout",  function(d) { if (b.tooltip) b.tooltip.hide(d); }.bind(this))
                 .on("click", function(d) {
                     if (b.onclick) b.onclick(d);
                 }.bind(this));
