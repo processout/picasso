@@ -371,7 +371,7 @@ var Picasso;
                     tmp = xBand(d.data.key); return tmp + xbar(id); })
                     .attr("y", function (d) { return y(d[1]); })
                     .attr("height", function (d) { var y0 = y(minValue); if (stackedBars)
-                    y0 = y(d[0]); return this.max(1, y0 - y(d[1])); }.bind(this))
+                    y0 = y(d[0]); return this.max(0, y0 - y(d[1])); }.bind(this))
                     .attr("width", xbar.bandwidth())
                     .attr("fill", function (d) {
                     if (d.data.color && this.isFunction(d.data.color)) {

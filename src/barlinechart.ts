@@ -320,7 +320,7 @@ namespace Picasso {
                     .attr("class", "bar")
                     .attr("x", function(d) { var tmp = x(d.data.key); if (timescaled) tmp = xBand(d.data.key); return tmp + xbar(id); })
                     .attr("y", function(d) {  return y(d[1]); })
-                    .attr("height", function(d) { let y0 = y(minValue); if (stackedBars) y0 = y(d[0]); return this.max(1, y0 - y(d[1])); }.bind(this))
+                    .attr("height", function(d) { let y0 = y(minValue); if (stackedBars) y0 = y(d[0]); return this.max(0, y0 - y(d[1])); }.bind(this))
                     .attr("width", xbar.bandwidth())
                     .attr("fill", function(d) {
                         if (d.data.color && this.isFunction(d.data.color)) {
