@@ -2,7 +2,7 @@
   "name": "@processout/picasso",
   "version": "0.2.0",
   "description": "Picasso is a library for rendering charts in web applications.",
-  "main": "scripts/picasso.js",
+  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/processout/picasso.git"
