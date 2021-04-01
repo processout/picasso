@@ -4,6 +4,7 @@
   "description": "Picasso is a library for rendering charts in web applications.",
   "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
     "format": "prettier --write 'src/**/*.ts'"
   },
   "repository": {
