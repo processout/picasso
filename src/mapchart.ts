@@ -126,11 +126,11 @@ export class MapChart extends Chart {
       )
       .on(
         "mouseover",
-        function (d) {
+        function (d, i, n) {
           var country = this.findCountry(d.id);
           if (!country) return;
           if (!this.options.tooltip) return;
-          this.options.tooltip.show(country);
+          this.options.tooltip.show(country, n[i]);
         }.bind(this)
       )
       .on(

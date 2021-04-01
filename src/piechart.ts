@@ -128,7 +128,7 @@ export class PieChart extends Chart {
       var t = this;
       arcs
         .selectAll("path,text")
-        .on("mouseover", function (d) {
+        .on("mouseover", function (d, i, n) {
           if (this.nodeName != "text") {
             // We want to find the text element for the tooltip
             // to be properly placed
@@ -137,7 +137,7 @@ export class PieChart extends Chart {
               .dispatchEvent(new Event("mouseover"));
             return;
           }
-          t.options.tooltip.show(d.data);
+          t.options.tooltip.show(d.data, n[i]);
         })
         .on(
           "mouseout",

@@ -476,7 +476,7 @@ export class BarLineChart extends Chart {
         .attr("width", xBand.bandwidth())
         .on(
           "mouseover",
-          function (d) {
+          function (d, i, n) {
             var vals: Array<any> = [];
             for (var line of this.lines)
               for (var val of line.data)
@@ -488,7 +488,7 @@ export class BarLineChart extends Chart {
                 )
                   vals.push(val);
             if (this.linesTooltip && vals.length > 0)
-              this.linesTooltip.show.call(this, vals);
+              this.linesTooltip.show(vals, n[i]);
           }.bind(this)
         )
         .on(
@@ -539,8 +539,8 @@ export class BarLineChart extends Chart {
         .attr("width", xbar.bandwidth())
         .on(
           "mouseover",
-          function (d) {
-            if (b.tooltip) b.tooltip.show(d);
+          function (d, i, n) {
+            if (b.tooltip) b.tooltip.show(d, n[i]);
           }.bind(this)
         )
         .on(
