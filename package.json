@@ -1,0 +1,28 @@
+{
+  "name": "@processout/picasso",
+  "version": "0.2.0",
+  "description": "Picasso is a library for rendering charts in web applications.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write 'src/**/*.ts'",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/processout/picasso.git"
+  },
+  "author": "ProcessOut",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/processout/picasso/issues"
+  },
+  "homepage": "https://github.com/processout/picasso#readme",
+  "dependencies": {
+    "d3": "^4.13.0",
+    "d3-tip": "^0.9.1"
+  },
+  "devDependencies": {
+    "prettier": "^2.2.1"
+  }
+}
