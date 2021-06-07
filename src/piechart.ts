@@ -124,13 +124,6 @@ namespace Picasso {
                 var t = this;
                 arcs.selectAll("path,text").
                     on("mouseover", function(d) {
-                        if (this.nodeName != "text") {
-                            // We want to find the text element for the tooltip
-                            // to be properly placed
-                            this.parentElement.querySelector("text")
-                                .dispatchEvent(new Event("mouseover"));
-                            return;
-                        }
                         t.options.tooltip.show(d.data);
                     })
                     .on("mouseout", function(d) {
