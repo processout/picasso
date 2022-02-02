@@ -507,6 +507,23 @@ export class BarLineChart extends Chart {
             if (this.linesTooltip && vals.length > 0)
               this.linesTooltip.hide.call(this, vals);
           }.bind(this)
+        )
+        .on(
+          "click",
+          function (d) {
+            var vals: Array<any> = [];
+            for (var line of this.lines)
+              for (var val of line.data)
+                if (
+                  ((val.key instanceof Date &&
+                    val.key.toString() == d.toString()) ||
+                    val.key == d) &&
+                  this.linesTooltip
+                )
+                  vals.push(val);
+            for (var line of this.lines)
+              if (line.onclick) line.onclick(vals[0]);
+          }.bind(this)
         );
     }
 
