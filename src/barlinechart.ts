@@ -522,7 +522,10 @@ export class BarLineChart extends Chart {
                 )
                   vals.push(val);
             for (var line of this.lines)
-              if (line.onclick) line.onclick(vals[0]);
+              if (line.onclick) {
+                line.onclick(vals[0]);
+                this.linesTooltip.hide.call(this, vals[0]);
+              }
           }.bind(this)
         );
     }
