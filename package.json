@@ -1,6 +1,6 @@
 {
   "name": "@processout/picasso",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Picasso is a library for rendering charts in web applications.",
   "main": "dist/index.js",
   "scripts": {
